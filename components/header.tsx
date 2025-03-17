@@ -12,8 +12,8 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Don't show the header on auth pages
-  if (pathname?.startsWith("/auth/")) {
+  // Don't show the header on auth pages or dashboard pages
+  if (pathname?.startsWith("/auth/") || pathname?.startsWith("/dashboard")) {
     return null;
   }
 
@@ -75,12 +75,12 @@ export default function Header() {
           <ThemeSwitcher />
 
           <div className="hidden md:flex items-center gap-2">
-            <Link href="/auth/sign-in">
+            <Link href="/sign-in">
               <Button variant="outline" size="sm">
                 Log In
               </Button>
             </Link>
-            <Link href="/auth/sign-up">
+            <Link href="/sign-up">
               <Button
                 className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
                 size="sm"
