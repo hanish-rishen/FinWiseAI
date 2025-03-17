@@ -15,8 +15,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  BarChart3,
-  PieChart,
   ArrowUpRight,
   LayoutDashboard,
   CreditCard,
@@ -32,35 +30,47 @@ import {
   Menu,
   X,
   Bell,
+  Camera,
+  FileVideo,
+  ClipboardCheck,
+  Globe2,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const quickActions = [
   {
-    title: "Apply for Loan",
-    description: "Start a new loan application",
-    icon: <DollarSign className="h-5 w-5" />,
-    href: "/dashboard/loans/apply",
+    title: "Start Loan Application",
+    description: "Begin a video conversation with our AI Branch Manager",
+    icon: <FileVideo className="h-5 w-5" />,
+    href: "/dashboard/video-banker",
     color: "bg-blue-500",
   },
   {
-    title: "Check Eligibility",
-    description: "See what products you pre-qualify for",
-    icon: <FileText className="h-5 w-5" />,
-    href: "/dashboard/eligibility",
+    title: "Upload Documents",
+    description: "Submit Aadhaar, PAN, or income proof via camera or upload",
+    icon: <Camera className="h-5 w-5" />,
+    href: "/dashboard/documents",
     color: "bg-green-500",
   },
   {
-    title: "Schedule Meeting",
-    description: "Book a video call with our team",
-    icon: <Calendar className="h-5 w-5" />,
-    href: "/dashboard/schedule",
+    title: "Check Eligibility",
+    description: "See if you qualify for our loan products",
+    icon: <ClipboardCheck className="h-5 w-5" />,
+    href: "/dashboard/eligibility",
     color: "bg-purple-500",
   },
   {
-    title: "Chat with AI Advisor",
-    description: "Get instant financial advice",
+    title: "Video Guidance",
+    description: "Get help with your application through video chat",
     icon: <MessageSquare className="h-5 w-5" />,
-    href: "/dashboard/chat",
+    href: "/dashboard/video-chat",
     color: "bg-amber-500",
   },
 ];
@@ -68,33 +78,78 @@ const quickActions = [
 const loanProducts = [
   {
     title: "Personal Loan",
-    apr: "From 5.99% APR",
-    max: "Up to $50,000",
-    description: "Flexible funding for any purpose",
+    apr: "From 10.99% APR",
+    max: "Up to ₹15,00,000",
+    description: "Flexible funding for any personal need",
   },
   {
-    title: "Home Mortgage",
-    apr: "From 3.25% APR",
-    max: "Up to $1,000,000",
-    description: "Find your dream home today",
-  },
-  {
-    title: "Auto Loan",
-    apr: "From 3.49% APR",
-    max: "Up to $100,000",
-    description: "Get on the road with confidence",
+    title: "Home Loan",
+    apr: "From 8.50% APR",
+    max: "Up to ₹75,00,000",
+    description: "Purchase your dream home today",
   },
   {
     title: "Business Loan",
-    apr: "From 6.75% APR",
-    max: "Up to $250,000",
+    apr: "From 12.75% APR",
+    max: "Up to ₹50,00,000",
     description: "Grow your business with flexible capital",
+  },
+  {
+    title: "Education Loan",
+    apr: "From 9.25% APR",
+    max: "Up to ₹25,00,000",
+    description: "Fund your higher education dreams",
+  },
+  {
+    title: "Vehicle Loan",
+    apr: "From 7.99% APR",
+    max: "Up to ₹20,00,000",
+    description: "Finance your new car or two-wheeler",
+  },
+  {
+    title: "Gold Loan",
+    apr: "From 7.50% APR",
+    max: "Up to ₹30,00,000",
+    description: "Quick loans against your gold assets",
+  },
+];
+
+const notifications = [
+  {
+    id: 1,
+    title: "Document verification complete",
+    message: "Your PAN card has been successfully verified.",
+    time: "Just now",
+    read: false,
+  },
+  {
+    id: 2,
+    title: "Video interview reminder",
+    message: "Your scheduled video interview is in 2 hours.",
+    time: "2 hours ago",
+    read: false,
+  },
+  {
+    id: 3,
+    title: "Loan application update",
+    message: "Additional information needed for your loan application.",
+    time: "Yesterday",
+    read: true,
+  },
+  {
+    id: 4,
+    title: "Welcome to FinWiseAI",
+    message: "Thank you for joining our video-based loan platform.",
+    time: "3 days ago",
+    read: true,
   },
 ];
 
 export default function Dashboard() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [readNotifications, setReadNotifications] = useState<number[]>([3, 4]);
 
   const currentDate = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -102,6 +157,16 @@ export default function Dashboard() {
     month: "long",
     day: "numeric",
   });
+
+  const markAsRead = (id: number) => {
+    if (!readNotifications.includes(id)) {
+      setReadNotifications([...readNotifications, id]);
+    }
+  };
+
+  const unreadCount = notifications.filter(
+    (notification) => !readNotifications.includes(notification.id)
+  ).length;
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-950">
@@ -131,25 +196,39 @@ export default function Dashboard() {
                 <span>Dashboard</span>
               </Link>
               <Link
-                href="/dashboard/loans"
+                href="/dashboard/video-banker"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <FileVideo className="h-5 w-5" />
+                <span>AI Branch Manager</span>
+              </Link>
+              <Link
+                href="/dashboard/documents"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <FileText className="h-5 w-5" />
+                <span>My Documents</span>
+              </Link>
+              <Link
+                href="/dashboard/applications"
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <DollarSign className="h-5 w-5" />
-                <span>Loans</span>
+                <span>Loan Applications</span>
               </Link>
               <Link
-                href="/dashboard/accounts"
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                <CreditCard className="h-5 w-5" />
-                <span>Accounts</span>
-              </Link>
-              <Link
-                href="/dashboard/chat"
+                href="/dashboard/video-chat"
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <MessageSquare className="h-5 w-5" />
-                <span>AI Assistant</span>
+                <span>Video Chat</span>
+              </Link>
+              <Link
+                href="/dashboard/language"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <Globe2 className="h-5 w-5" />
+                <span>Language Settings</span>
               </Link>
             </div>
           </div>
@@ -235,7 +314,6 @@ export default function Dashboard() {
           </Link>
         </div>
         <nav className="flex-1 overflow-y-auto p-4 space-y-8">
-          {/* Same navigation items as desktop */}
           <div className="space-y-2">
             <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               Main
@@ -250,28 +328,44 @@ export default function Dashboard() {
                 <span>Dashboard</span>
               </Link>
               <Link
-                href="/dashboard/loans"
+                href="/dashboard/video-banker"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <FileVideo className="h-5 w-5" />
+                <span>AI Branch Manager</span>
+              </Link>
+              <Link
+                href="/dashboard/documents"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <FileText className="h-5 w-5" />
+                <span>My Documents</span>
+              </Link>
+              <Link
+                href="/dashboard/applications"
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <DollarSign className="h-5 w-5" />
-                <span>Loans</span>
+                <span>Loan Applications</span>
               </Link>
               <Link
-                href="/dashboard/accounts"
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <CreditCard className="h-5 w-5" />
-                <span>Accounts</span>
-              </Link>
-              <Link
-                href="/dashboard/chat"
+                href="/dashboard/video-chat"
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <MessageSquare className="h-5 w-5" />
-                <span>AI Assistant</span>
+                <span>Video Chat</span>
+              </Link>
+              <Link
+                href="/dashboard/language"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Globe2 className="h-5 w-5" />
+                <span>Language Settings</span>
               </Link>
             </div>
           </div>
@@ -327,22 +421,94 @@ export default function Dashboard() {
           <header className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 mb-8">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-                Welcome back
+                Welcome to FinWiseAI
               </h1>
               <p className="text-gray-600 dark:text-gray-400">{currentDate}</p>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="outline" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  2
-                </span>
-              </Button>
+              <DropdownMenu
+                open={notificationsOpen}
+                onOpenChange={setNotificationsOpen}
+              >
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="relative">
+                    <Bell className="h-5 w-5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-80" align="end">
+                  <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {notifications.map((notification) => (
+                    <DropdownMenuItem
+                      key={notification.id}
+                      className="p-0 focus:bg-transparent"
+                      onSelect={() => markAsRead(notification.id)}
+                    >
+                      <div
+                        className={`w-full px-4 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 ${!readNotifications.includes(notification.id) ? "bg-blue-50 dark:bg-blue-900/20" : ""}`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="font-medium">
+                            {notification.title}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {notification.time}
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {notification.message}
+                        </p>
+                      </div>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuItem className="justify-center">
+                    <Button variant="ghost" size="sm">
+                      View all notifications
+                    </Button>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <div className="h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
-                JD
+                RK
               </div>
             </div>
           </header>
+
+          {/* Welcome Banner for AI Branch Manager */}
+          <motion.div
+            className="mb-8 p-8 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white relative overflow-hidden"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/4"></div>
+            <div className="relative z-10">
+              <h2 className="text-2xl md:text-3xl font-bold mb-4">
+                Meet Your AI Branch Manager
+              </h2>
+              <p className="text-lg opacity-90 mb-6 md:max-w-lg">
+                Apply for loans through video conversations without the hassle
+                of paperwork or branch visits.
+              </p>
+              <Link href="/dashboard/video-banker">
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="bg-white text-blue-600 hover:bg-blue-50"
+                >
+                  Start Video Conversation
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {quickActions.map((action, index) => (
@@ -373,114 +539,31 @@ export default function Dashboard() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <motion.div
-              className="lg:col-span-2"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.4 }}
-            >
-              <Card className="h-full">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <div>
-                    <CardTitle>Loan Products</CardTitle>
-                    <CardDescription>
-                      Find the right financing option for your needs
-                    </CardDescription>
-                  </div>
-                  <Link href="/dashboard/loans/compare">
-                    <Button variant="ghost" className="text-sm" size="sm">
-                      Compare All
-                      <ArrowRight className="ml-1 h-4 w-4" />
-                    </Button>
-                  </Link>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {loanProducts.map((product, index) => (
-                      <div
-                        key={index}
-                        className="p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
-                      >
-                        <h3 className="font-medium mb-1">{product.title}</h3>
-                        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-                          <span>{product.apr}</span>
-                          <span>{product.max}</span>
-                        </div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {product.description}
-                        </p>
+            {loanProducts.map((product, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+              >
+                <Card className="h-full">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">{product.title}</CardTitle>
+                    <CardDescription>{product.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex justify-between items-center">
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        {product.apr}
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.5 }}
-            >
-              <Card className="h-full">
-                <CardHeader>
-                  <CardTitle>Financial Snapshot</CardTitle>
-                  <CardDescription>
-                    Your current financial status
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Credit Score</span>
-                      <span className="font-medium">742</span>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        {product.max}
+                      </div>
                     </div>
-                    <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full">
-                      <div
-                        className="h-2 bg-green-500 rounded-full"
-                        style={{ width: "74%" }}
-                      ></div>
-                    </div>
-                    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                      <span>Poor</span>
-                      <span>Excellent</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Pre-qualified for
-                      </p>
-                      <p className="text-lg font-bold">$25,000</p>
-                    </div>
-                    <Link href="/dashboard/eligibility">
-                      <Button size="sm">Check Eligibility</Button>
-                    </Link>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Total Debt
-                      </span>
-                      <span>$12,450</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Monthly Income
-                      </span>
-                      <span>$4,500</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Debt-to-Income
-                      </span>
-                      <span>23%</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
           </div>
 
           <motion.div
