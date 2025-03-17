@@ -34,6 +34,9 @@ import {
   FileVideo,
   ClipboardCheck,
   Globe2,
+  BarChart3,
+  Wallet,
+  PiggyBank,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -67,10 +70,10 @@ const quickActions = [
     color: "bg-purple-500",
   },
   {
-    title: "Video Guidance",
-    description: "Get help with your application through video chat",
-    icon: <MessageSquare className="h-5 w-5" />,
-    href: "/dashboard/video-chat",
+    title: "Financial Planning",
+    description: "Get personalized financial advice and planning",
+    icon: <PiggyBank className="h-5 w-5" />,
+    href: "/dashboard/planning",
     color: "bg-amber-500",
   },
 ];
@@ -217,11 +220,11 @@ export default function Dashboard() {
                 <span>Loan Applications</span>
               </Link>
               <Link
-                href="/dashboard/video-chat"
+                href="/dashboard/planning"
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
-                <MessageSquare className="h-5 w-5" />
-                <span>Video Chat</span>
+                <PiggyBank className="h-5 w-5" />
+                <span>Financial Planning</span>
               </Link>
               <Link
                 href="/dashboard/language"
@@ -352,12 +355,12 @@ export default function Dashboard() {
                 <span>Loan Applications</span>
               </Link>
               <Link
-                href="/dashboard/video-chat"
+                href="/dashboard/planning"
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <MessageSquare className="h-5 w-5" />
-                <span>Video Chat</span>
+                <PiggyBank className="h-5 w-5" />
+                <span>Financial Planning</span>
               </Link>
               <Link
                 href="/dashboard/language"
@@ -588,11 +591,9 @@ export default function Dashboard() {
                       time: "Today, 9:30 AM",
                     },
                     {
-                      icon: (
-                        <MessageSquare className="h-5 w-5 text-green-500" />
-                      ),
-                      title: "Chat with AI Assistant",
-                      description: "Discussion about mortgage rates",
+                      icon: <FileVideo className="h-5 w-5 text-green-500" />,
+                      title: "AI Branch Manager session",
+                      description: "Video conversation about home loan options",
                       time: "Yesterday, 2:45 PM",
                     },
                     {
@@ -628,6 +629,135 @@ export default function Dashboard() {
               </CardFooter>
             </Card>
           </motion.div>
+
+          {/* Financial Insights Section */}
+          <div className="mt-8">
+            <h2 className="text-xl font-bold mb-4">Financial Insights</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.7 }}
+              >
+                <Card>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">Credit Health</CardTitle>
+                      <BarChart3 className="h-5 w-5 text-gray-400" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex flex-col">
+                        <div className="flex justify-between">
+                          <span className="font-medium">742</span>
+                          <span className="text-sm text-green-600">Good</span>
+                        </div>
+                        <div className="mt-2 h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-green-500 rounded-full"
+                            style={{ width: "74%" }}
+                          ></div>
+                        </div>
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>Poor</span>
+                          <span>Average</span>
+                          <span>Good</span>
+                          <span>Excellent</span>
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm" className="w-full">
+                        View Credit Report
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.8 }}
+              >
+                <Card>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">Budget Tracker</CardTitle>
+                      <Wallet className="h-5 w-5 text-gray-400" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span>Monthly Income</span>
+                        <span className="font-medium">₹85,000</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>Expenses</span>
+                        <span className="font-medium">₹52,340</span>
+                      </div>
+                      <div className="h-[1px] w-full bg-gray-200 dark:bg-gray-800"></div>
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">Available</span>
+                        <span className="font-medium text-green-500">
+                          ₹32,660
+                        </span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full mt-2"
+                      >
+                        View Details
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.9 }}
+              >
+                <Card>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">EMI Calculator</CardTitle>
+                      <Calendar className="h-5 w-5 text-gray-400" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="text-center mb-2">
+                        <span className="text-2xl font-bold">₹18,450</span>
+                        <p className="text-xs text-gray-500">Monthly EMI</p>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-lg text-center">
+                          <div className="font-medium">5 Lakh</div>
+                          <div className="text-gray-500">Principal</div>
+                        </div>
+                        <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-lg text-center">
+                          <div className="font-medium">10.5%</div>
+                          <div className="text-gray-500">Interest</div>
+                        </div>
+                        <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-lg text-center">
+                          <div className="font-medium">3 Years</div>
+                          <div className="text-gray-500">Tenure</div>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full mt-2"
+                      >
+                        Recalculate
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+          </div>
         </div>
       </main>
     </div>
