@@ -4,11 +4,16 @@ export const metadata = {
 };
 
 import { DashboardClientWrapper } from "./dashboard-client-wrapper";
+import { LanguageProvider } from "@/context/language-context";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <DashboardClientWrapper>{children}</DashboardClientWrapper>;
+  return (
+    <LanguageProvider>
+      <DashboardClientWrapper>{children}</DashboardClientWrapper>
+    </LanguageProvider>
+  );
 }

@@ -19,6 +19,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { uploadDocument, deleteDocument, fetchDocuments } from "./actions";
 import Image from "next/image";
 import { Document, DocumentType } from "./types";
+import { useLanguage } from "@/context/language-context";
 
 // Document types and their requirements
 const documentTypes = [
@@ -65,6 +66,7 @@ const documentTypes = [
 ];
 
 export default function DocumentsPage() {
+  const { t } = useLanguage();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [currentDocType, setCurrentDocType] = useState<DocumentType>(
     documentTypes[0]
@@ -125,8 +127,6 @@ export default function DocumentsPage() {
           setPreviewImage(e.target?.result as string);
         };
         reader.readAsDataURL(file);
-      } else {
-        setPreviewImage(null);
       }
 
       setUploading(true);

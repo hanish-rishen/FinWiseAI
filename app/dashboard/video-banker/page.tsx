@@ -26,8 +26,10 @@ import Link from "next/link";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/context/language-context";
 
 export default function AiBranchManager() {
+  const { t } = useLanguage();
   const [micEnabled, setMicEnabled] = useState(true);
   const [cameraEnabled, setCameraEnabled] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
@@ -297,10 +299,10 @@ export default function AiBranchManager() {
           </Link>
           <div>
             <h1 className="text-lg font-semibold leading-none">
-              AI Branch Manager
+              {t("ai_branch_manager")}
             </h1>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              Video conversation
+              {t("video_conversation")}
             </p>
           </div>
         </div>
@@ -317,7 +319,7 @@ export default function AiBranchManager() {
             size="sm"
             className="text-red-600 dark:text-red-400 border-red-100 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20"
           >
-            End Session
+            {t("end_session")}
           </Button>
         </div>
       </div>
@@ -399,7 +401,7 @@ export default function AiBranchManager() {
                               )}
                               {isSpeaking && (
                                 <span
-                                  className="absolute inset-0 rounded-full bg-green-500/30 animate-ping"
+                                  className="absolute inset-0 rounded-full bg-green-500 animate-ping"
                                   style={{
                                     transform: `scale(${1 + audioLevel})`,
                                     opacity: 0.3 + audioLevel * 0.5,

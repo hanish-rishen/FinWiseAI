@@ -1,0 +1,45 @@
+{
+  "dashboard": "డాష్బోర్డ్",
+  "language_settings": "భాషా సెట్టింగ్‌లు",
+  "select_language": "మీ అభీష్ట భాషను ఎంచుకోండి",
+  "language_description": "మీరు FinWiseAI ని ఏ భాషలో ఉపయోగించాలనుకుంటున్నారో ఆ భాషను ఎంచుకోండి. ఇంటర్ఫేస్ మరియు సంభాషణలు అనుగుణంగా సర్దుబాటు చేయబడతాయి.",
+  "save_preference": "ప్రాధాన్యతను సేవ్ చేయండి",
+  "current_language": "మీ ప్రస్తుత భాష",
+  "save_success": "భాషా ప్రాధాన్యత విజయవంతంగా సేవ్ చేయబడింది!",
+  "about_language_support": "భాషా మద్దతు గురించి",
+  "language_support_description": "FinWiseAI మా సేవలు అందరికీ అందుబాటులో ఉండేలా అనేక భాషలకు మద్దతు ఇస్తుంది. మా AI బ్రాంచ్ మేనేజర్ వివిధ భారతీయ భాషలలో సంభాషించగలరు, తద్వారా రుణ దరఖాస్తు ప్రక్రియ మరింత సౌకర్యవంతంగా ఉంటుంది.",
+  "feature_interface": "అప్లికేషన్‌లో నావిగేట్ చేయడానికి ఇంటర్ఫేస్ అనువాదాలు",
+  "feature_conversations": "మీకు ఇష్టమైన భాషలో AI సంభాషణలు",
+  "feature_documents": "పత్రాల అవసరాలు స్పష్టంగా వివరించబడ్డాయి",
+  "feature_accents": "ప్రాంతీయ యాసలు మరియు మాండలిక భాషలకు మద్దతు",
+
+  "welcome": "FinWiseAI కి స్వాగతం",
+  "apply_loan": "రుణం కోసం దరఖాస్తు చేయండి",
+  "upload_documents": "పత్రాలను అప్‌లోడ్ చేయండి",
+  "check_eligibility": "అర్హతను తనిఖీ చేయండి",
+  "financial_planning": "ఆర్థిక ప్రణాళిక",
+  "sign_out": "సైన్ అవుట్",
+
+  "ai_branch_manager": "AI బ్రాంచ్ మేనేజర్",
+  "video_conversation": "వీడియో సంభాషణ",
+  "start_conversation": "వీడియో సంభాషణను ప్రారంభించండి",
+  "end_session": "సెషన్‌ను ముగించండి",
+
+  "main_menu": "ప్రధాన",
+  "personal": "వ్యక్తిగత",
+  "profile": "ప్రొఫైల్",
+  "settings": "సెట్టింగులు",
+  "help_support": "సహాయం & మద్దతు",
+  "loan_applications": "రుణ దరఖాస్తులు",
+  "notifications": "నోటిఫికేషన్లు",
+  "view_all_notifications": "అన్ని నోటిఫికేషన్లను చూడండి",
+
+  "branch_manager_description": "పత్రాల పని లేదా శాఖ సందర్శనల ఇబ్బంది లేకుండా వీడియో సంభాషణల ద్వారా రుణాల కోసం దరఖాస్తు చేయండి.",
+
+  "loan_application_started": "రుణ దరఖాస్తు ప్రారంభించబడింది",
+  "personal_loan_progress": "వ్యక్తిగత రుణ దరఖాస్తు ప్రగతిలో ఉంది",
+  "ai_branch_session": "AI శాఖ మేనేజర్ సెషన్",
+  "home_loan_conversation": "హోమ్ లోన్ ఎంపికల గురించి వీడియో సంభాషణ",
+  "eligibility_check": "అర్హత తనిఖీ పూర్తయింది",
+  "pre_qualified": "బహుళ ఉత్పత్తుల కోసం ముందస్తు అర్హత పొందారు"
+}

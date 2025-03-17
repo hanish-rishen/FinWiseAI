@@ -3,6 +3,7 @@
 import { useToast } from "@/components/ui/use-toast";
 import { ToastProvider } from "@/components/ui/toast";
 import { useState } from "react";
+import { LanguageProvider } from "@/context/language-context";
 
 export function DashboardClientWrapper({
   children,
@@ -17,9 +18,9 @@ export function DashboardClientWrapper({
   };
 
   return (
-    <>
+    <LanguageProvider>
       {children}
       <ToastProvider toasts={toasts} onClose={handleClose} />
-    </>
+    </LanguageProvider>
   );
 }

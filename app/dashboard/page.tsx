@@ -46,32 +46,33 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useLanguage } from "@/context/language-context";
 
 const quickActions = [
   {
-    title: "Start Loan Application",
-    description: "Begin a video conversation with our AI Branch Manager",
+    titleKey: "start_loan_application",
+    descriptionKey: "loan_application_description",
     icon: <FileVideo className="h-5 w-5" />,
     href: "/dashboard/video-banker",
     color: "bg-blue-500",
   },
   {
-    title: "Upload Documents",
-    description: "Submit Aadhaar, PAN, or income proof via camera or upload",
+    titleKey: "upload_documents",
+    descriptionKey: "upload_documents_description",
     icon: <Camera className="h-5 w-5" />,
     href: "/dashboard/documents",
     color: "bg-green-500",
   },
   {
-    title: "Check Eligibility",
-    description: "See if you qualify for our loan products",
+    titleKey: "check_eligibility",
+    descriptionKey: "check_eligibility_description",
     icon: <ClipboardCheck className="h-5 w-5" />,
     href: "/dashboard/eligibility",
     color: "bg-purple-500",
   },
   {
-    title: "Financial Planning",
-    description: "Get personalized financial advice and planning",
+    titleKey: "financial_planning",
+    descriptionKey: "financial_planning_description",
     icon: <PiggyBank className="h-5 w-5" />,
     href: "/dashboard/planning",
     color: "bg-amber-500",
@@ -80,40 +81,40 @@ const quickActions = [
 
 const loanProducts = [
   {
-    title: "Personal Loan",
-    apr: "From 10.99% APR",
-    max: "Up to ₹15,00,000",
-    description: "Flexible funding for any personal need",
+    titleKey: "personal_loan",
+    descriptionKey: "personal_loan_description",
+    aprKey: "personal_loan_apr",
+    maxKey: "personal_loan_max",
   },
   {
-    title: "Home Loan",
-    apr: "From 8.50% APR",
-    max: "Up to ₹75,00,000",
-    description: "Purchase your dream home today",
+    titleKey: "home_loan",
+    descriptionKey: "home_loan_description",
+    aprKey: "home_loan_apr",
+    maxKey: "home_loan_max",
   },
   {
-    title: "Business Loan",
-    apr: "From 12.75% APR",
-    max: "Up to ₹50,00,000",
-    description: "Grow your business with flexible capital",
+    titleKey: "business_loan",
+    descriptionKey: "business_loan_description",
+    aprKey: "business_loan_apr",
+    maxKey: "business_loan_max",
   },
   {
-    title: "Education Loan",
-    apr: "From 9.25% APR",
-    max: "Up to ₹25,00,000",
-    description: "Fund your higher education dreams",
+    titleKey: "education_loan",
+    descriptionKey: "education_loan_description",
+    aprKey: "education_loan_apr",
+    maxKey: "education_loan_max",
   },
   {
-    title: "Vehicle Loan",
-    apr: "From 7.99% APR",
-    max: "Up to ₹20,00,000",
-    description: "Finance your new car or two-wheeler",
+    titleKey: "vehicle_loan",
+    descriptionKey: "vehicle_loan_description",
+    aprKey: "vehicle_loan_apr",
+    maxKey: "vehicle_loan_max",
   },
   {
-    title: "Gold Loan",
-    apr: "From 7.50% APR",
-    max: "Up to ₹30,00,000",
-    description: "Quick loans against your gold assets",
+    titleKey: "gold_loan",
+    descriptionKey: "gold_loan_description",
+    aprKey: "gold_loan_apr",
+    maxKey: "gold_loan_max",
   },
 ];
 
@@ -153,6 +154,7 @@ export default function Dashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [readNotifications, setReadNotifications] = useState<number[]>([3, 4]);
+  const { t } = useLanguage();
 
   const currentDate = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -188,7 +190,7 @@ export default function Dashboard() {
         <nav className="flex-1 overflow-y-auto p-4 space-y-8">
           <div className="space-y-2">
             <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              Main
+              {t("main_menu")}
             </h2>
             <div className="space-y-1">
               <Link
@@ -196,49 +198,49 @@ export default function Dashboard() {
                 className="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 font-medium"
               >
                 <LayoutDashboard className="h-5 w-5" />
-                <span>Dashboard</span>
+                <span>{t("dashboard")}</span>
               </Link>
               <Link
                 href="/dashboard/video-banker"
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <FileVideo className="h-5 w-5" />
-                <span>AI Branch Manager</span>
+                <span>{t("ai_branch_manager")}</span>
               </Link>
               <Link
                 href="/dashboard/documents"
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <FileText className="h-5 w-5" />
-                <span>My Documents</span>
+                <span>{t("upload_documents")}</span>
               </Link>
               <Link
                 href="/dashboard/applications"
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <DollarSign className="h-5 w-5" />
-                <span>Loan Applications</span>
+                <span>{t("loan_applications")}</span>
               </Link>
               <Link
                 href="/dashboard/planning"
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <PiggyBank className="h-5 w-5" />
-                <span>Financial Planning</span>
+                <span>{t("financial_planning")}</span>
               </Link>
               <Link
                 href="/dashboard/language"
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <Globe2 className="h-5 w-5" />
-                <span>Language Settings</span>
+                <span>{t("language_settings")}</span>
               </Link>
             </div>
           </div>
 
           <div className="space-y-2">
             <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              Personal
+              {t("personal")}
             </h2>
             <div className="space-y-1">
               <Link
@@ -246,21 +248,21 @@ export default function Dashboard() {
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <Home className="h-5 w-5" />
-                <span>Profile</span>
+                <span>{t("profile")}</span>
               </Link>
               <Link
                 href="/dashboard/settings"
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <Settings className="h-5 w-5" />
-                <span>Settings</span>
+                <span>{t("settings")}</span>
               </Link>
               <Link
                 href="/dashboard/help"
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <HelpCircle className="h-5 w-5" />
-                <span>Help & Support</span>
+                <span>{t("help_support")}</span>
               </Link>
             </div>
           </div>
@@ -272,7 +274,7 @@ export default function Dashboard() {
               className="w-full justify-start text-red-600 dark:text-red-400"
             >
               <LogOut className="h-5 w-5 mr-2" />
-              Sign Out
+              {t("sign_out")}
             </Button>
           </form>
         </div>
@@ -319,7 +321,7 @@ export default function Dashboard() {
         <nav className="flex-1 overflow-y-auto p-4 space-y-8">
           <div className="space-y-2">
             <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              Main
+              {t("main_menu")}
             </h2>
             <div className="space-y-1">
               <Link
@@ -328,7 +330,7 @@ export default function Dashboard() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <LayoutDashboard className="h-5 w-5" />
-                <span>Dashboard</span>
+                <span>{t("dashboard")}</span>
               </Link>
               <Link
                 href="/dashboard/video-banker"
@@ -336,7 +338,7 @@ export default function Dashboard() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <FileVideo className="h-5 w-5" />
-                <span>AI Branch Manager</span>
+                <span>{t("ai_branch_manager")}</span>
               </Link>
               <Link
                 href="/dashboard/documents"
@@ -344,7 +346,7 @@ export default function Dashboard() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <FileText className="h-5 w-5" />
-                <span>My Documents</span>
+                <span>{t("upload_documents")}</span>
               </Link>
               <Link
                 href="/dashboard/applications"
@@ -352,7 +354,7 @@ export default function Dashboard() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <DollarSign className="h-5 w-5" />
-                <span>Loan Applications</span>
+                <span>{t("loan_applications")}</span>
               </Link>
               <Link
                 href="/dashboard/planning"
@@ -360,7 +362,7 @@ export default function Dashboard() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <PiggyBank className="h-5 w-5" />
-                <span>Financial Planning</span>
+                <span>{t("financial_planning")}</span>
               </Link>
               <Link
                 href="/dashboard/language"
@@ -368,14 +370,14 @@ export default function Dashboard() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Globe2 className="h-5 w-5" />
-                <span>Language Settings</span>
+                <span>{t("language_settings")}</span>
               </Link>
             </div>
           </div>
 
           <div className="space-y-2">
             <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              Personal
+              {t("personal")}
             </h2>
             <div className="space-y-1">
               <Link
@@ -384,7 +386,7 @@ export default function Dashboard() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Home className="h-5 w-5" />
-                <span>Profile</span>
+                <span>{t("profile")}</span>
               </Link>
               <Link
                 href="/dashboard/settings"
@@ -392,7 +394,7 @@ export default function Dashboard() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Settings className="h-5 w-5" />
-                <span>Settings</span>
+                <span>{t("settings")}</span>
               </Link>
               <Link
                 href="/dashboard/help"
@@ -400,7 +402,7 @@ export default function Dashboard() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <HelpCircle className="h-5 w-5" />
-                <span>Help & Support</span>
+                <span>{t("help_support")}</span>
               </Link>
             </div>
           </div>
@@ -412,7 +414,7 @@ export default function Dashboard() {
               className="w-full justify-start text-red-600 dark:text-red-400"
             >
               <LogOut className="h-5 w-5 mr-2" />
-              Sign Out
+              {t("sign_out")}
             </Button>
           </form>
         </div>
@@ -424,7 +426,7 @@ export default function Dashboard() {
           <header className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 mb-8">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-                Welcome to FinWiseAI
+                {t("welcome")}
               </h1>
               <p className="text-gray-600 dark:text-gray-400">{currentDate}</p>
             </div>
@@ -444,7 +446,7 @@ export default function Dashboard() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-80" align="end">
-                  <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t("notifications")}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {notifications.map((notification) => (
                     <DropdownMenuItem
@@ -471,7 +473,7 @@ export default function Dashboard() {
                   ))}
                   <DropdownMenuItem className="justify-center">
                     <Button variant="ghost" size="sm">
-                      View all notifications
+                      {t("view_all_notifications")}
                     </Button>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -494,11 +496,10 @@ export default function Dashboard() {
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/4"></div>
             <div className="relative z-10">
               <h2 className="text-2xl md:text-3xl font-bold mb-4">
-                Meet Your AI Branch Manager
+                {t("ai_branch_manager")}
               </h2>
               <p className="text-lg opacity-90 mb-6 md:max-w-lg">
-                Apply for loans through video conversations without the hassle
-                of paperwork or branch visits.
+                {t("branch_manager_description")}
               </p>
               <Link href="/dashboard/video-banker">
                 <Button
@@ -506,7 +507,7 @@ export default function Dashboard() {
                   variant="secondary"
                   className="bg-white text-blue-600 hover:bg-blue-50"
                 >
-                  Start Video Conversation
+                  {t("start_conversation")}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
@@ -530,10 +531,12 @@ export default function Dashboard() {
                         {action.icon}
                       </div>
                       <CardTitle className="text-lg group-hover:text-blue-600 transition-colors flex items-center">
-                        {action.title}
+                        {t(action.titleKey)}
                         <ArrowUpRight className="h-4 w-4 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </CardTitle>
-                      <CardDescription>{action.description}</CardDescription>
+                      <CardDescription>
+                        {t(action.descriptionKey)}
+                      </CardDescription>
                     </CardHeader>
                   </Card>
                 </Link>
@@ -551,16 +554,20 @@ export default function Dashboard() {
               >
                 <Card className="h-full">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">{product.title}</CardTitle>
-                    <CardDescription>{product.description}</CardDescription>
+                    <CardTitle className="text-lg">
+                      {t(product.titleKey)}
+                    </CardTitle>
+                    <CardDescription>
+                      {t(product.descriptionKey)}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="flex justify-between items-center">
                       <div className="text-sm text-gray-600 dark:text-gray-400">
-                        {product.apr}
+                        {t(product.aprKey)}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
-                        {product.max}
+                        {t(product.maxKey)}
                       </div>
                     </div>
                   </CardContent>
@@ -576,30 +583,28 @@ export default function Dashboard() {
           >
             <Card>
               <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>
-                  Your latest interactions and updates
-                </CardDescription>
+                <CardTitle>{t("recent_activity")}</CardTitle>
+                <CardDescription>{t("latest_interactions")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {[
                     {
                       icon: <FileText className="h-5 w-5 text-blue-500" />,
-                      title: "Loan application started",
-                      description: "Personal loan application in progress",
+                      titleKey: "loan_application_started",
+                      descriptionKey: "personal_loan_progress",
                       time: "Today, 9:30 AM",
                     },
                     {
                       icon: <FileVideo className="h-5 w-5 text-green-500" />,
-                      title: "AI Branch Manager session",
-                      description: "Video conversation about home loan options",
+                      titleKey: "ai_branch_session",
+                      descriptionKey: "home_loan_conversation",
                       time: "Yesterday, 2:45 PM",
                     },
                     {
                       icon: <DollarSign className="h-5 w-5 text-amber-500" />,
-                      title: "Eligibility check completed",
-                      description: "Pre-qualified for multiple products",
+                      titleKey: "eligibility_check",
+                      descriptionKey: "pre_qualified",
                       time: "Apr 15, 2023",
                     },
                   ].map((activity, index) => (
@@ -609,13 +614,15 @@ export default function Dashboard() {
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between">
-                          <h4 className="font-medium">{activity.title}</h4>
+                          <h4 className="font-medium">
+                            {t(activity.titleKey)}
+                          </h4>
                           <span className="text-xs text-gray-500 dark:text-gray-400">
                             {activity.time}
                           </span>
                         </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {activity.description}
+                          {t(activity.descriptionKey)}
                         </p>
                       </div>
                     </div>
@@ -624,7 +631,7 @@ export default function Dashboard() {
               </CardContent>
               <CardFooter className="border-t border-gray-200 dark:border-gray-800 pt-4">
                 <Button variant="ghost" size="sm" className="ml-auto">
-                  View All Activity
+                  {t("view_all_activity")}
                 </Button>
               </CardFooter>
             </Card>
@@ -632,7 +639,9 @@ export default function Dashboard() {
 
           {/* Financial Insights Section */}
           <div className="mt-8">
-            <h2 className="text-xl font-bold mb-4">Financial Insights</h2>
+            <h2 className="text-xl font-bold mb-4">
+              {t("financial_insights")}
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -642,7 +651,9 @@ export default function Dashboard() {
                 <Card>
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">Credit Health</CardTitle>
+                      <CardTitle className="text-lg">
+                        {t("credit_health")}
+                      </CardTitle>
                       <BarChart3 className="h-5 w-5 text-gray-400" />
                     </div>
                   </CardHeader>
@@ -651,7 +662,9 @@ export default function Dashboard() {
                       <div className="flex flex-col">
                         <div className="flex justify-between">
                           <span className="font-medium">742</span>
-                          <span className="text-sm text-green-600">Good</span>
+                          <span className="text-sm text-green-600">
+                            {t("good")}
+                          </span>
                         </div>
                         <div className="mt-2 h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                           <div
@@ -660,14 +673,14 @@ export default function Dashboard() {
                           ></div>
                         </div>
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
-                          <span>Poor</span>
-                          <span>Average</span>
-                          <span>Good</span>
-                          <span>Excellent</span>
+                          <span>{t("poor")}</span>
+                          <span>{t("average")}</span>
+                          <span>{t("good")}</span>
+                          <span>{t("excellent")}</span>
                         </div>
                       </div>
                       <Button variant="outline" size="sm" className="w-full">
-                        View Credit Report
+                        {t("view_credit_report")}
                       </Button>
                     </div>
                   </CardContent>
@@ -681,23 +694,25 @@ export default function Dashboard() {
                 <Card>
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">Budget Tracker</CardTitle>
+                      <CardTitle className="text-lg">
+                        {t("budget_tracker")}
+                      </CardTitle>
                       <Wallet className="h-5 w-5 text-gray-400" />
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
-                        <span>Monthly Income</span>
+                        <span>{t("monthly_income")}</span>
                         <span className="font-medium">₹85,000</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span>Expenses</span>
+                        <span>{t("expenses")}</span>
                         <span className="font-medium">₹52,340</span>
                       </div>
                       <div className="h-[1px] w-full bg-gray-200 dark:bg-gray-800"></div>
                       <div className="flex justify-between items-center">
-                        <span className="font-medium">Available</span>
+                        <span className="font-medium">{t("available")}</span>
                         <span className="font-medium text-green-500">
                           ₹32,660
                         </span>
@@ -707,7 +722,7 @@ export default function Dashboard() {
                         size="sm"
                         className="w-full mt-2"
                       >
-                        View Details
+                        {t("view_details")}
                       </Button>
                     </div>
                   </CardContent>
@@ -721,7 +736,9 @@ export default function Dashboard() {
                 <Card>
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">EMI Calculator</CardTitle>
+                      <CardTitle className="text-lg">
+                        {t("emi_calculator")}
+                      </CardTitle>
                       <Calendar className="h-5 w-5 text-gray-400" />
                     </div>
                   </CardHeader>
@@ -729,20 +746,22 @@ export default function Dashboard() {
                     <div className="space-y-3">
                       <div className="text-center mb-2">
                         <span className="text-2xl font-bold">₹18,450</span>
-                        <p className="text-xs text-gray-500">Monthly EMI</p>
+                        <p className="text-xs text-gray-500">
+                          {t("monthly_emi")}
+                        </p>
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-xs">
                         <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-lg text-center">
-                          <div className="font-medium">5 Lakh</div>
-                          <div className="text-gray-500">Principal</div>
+                          <div className="font-medium">{t("5_lakh")}</div>
+                          <div className="text-gray-500">{t("principal")}</div>
                         </div>
                         <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-lg text-center">
                           <div className="font-medium">10.5%</div>
-                          <div className="text-gray-500">Interest</div>
+                          <div className="text-gray-500">{t("interest")}</div>
                         </div>
                         <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-lg text-center">
-                          <div className="font-medium">3 Years</div>
-                          <div className="text-gray-500">Tenure</div>
+                          <div className="font-medium">{t("3_years")}</div>
+                          <div className="text-gray-500">{t("tenure")}</div>
                         </div>
                       </div>
                       <Button
@@ -750,7 +769,7 @@ export default function Dashboard() {
                         size="sm"
                         className="w-full mt-2"
                       >
-                        Recalculate
+                        {t("recalculate")}
                       </Button>
                     </div>
                   </CardContent>
