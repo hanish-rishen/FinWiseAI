@@ -3,10 +3,17 @@ export const metadata = {
   description: "Manage your financial activities and loan applications",
 };
 
+import { DashboardClientWrapper } from "./dashboard-client-wrapper";
+import { LanguageProvider } from "@/context/language-context";
+
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <LanguageProvider>
+      <DashboardClientWrapper>{children}</DashboardClientWrapper>
+    </LanguageProvider>
+  );
 }

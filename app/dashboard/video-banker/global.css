@@ -1,0 +1,264 @@
+/* Base aspect ratio */
+.aspect-video {
+  aspect-ratio: 16 / 9;
+}
+
+/* Make sure the page doesn't overflow */
+html,
+body {
+  overflow: hidden;
+  height: 100%;
+}
+
+/* Optimize for different screen heights */
+@media (max-height: 700px) {
+  .aspect-video {
+    aspect-ratio: 16 / 8;
+  }
+
+  .compact-ui .p-4 {
+    padding: 0.5rem;
+  }
+
+  .compact-ui .text-xl {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+
+  .compact-ui .mb-4 {
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Ensure mobile responsiveness */
+@media (max-width: 768px) {
+  .mobile-hidden {
+    display: none;
+  }
+
+  .mobile-full-height {
+    height: calc(100vh - 57px);
+  }
+
+  .mobile-padding {
+    padding: 0.5rem;
+  }
+
+  .chat-mobile-overlay {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 50;
+    background: white;
+  }
+
+  .dark .chat-mobile-overlay {
+    background: #121212;
+  }
+}
+
+/* Improve touch targets on mobile */
+@media (max-width: 640px) {
+  .btn-touch-friendly {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .chat-input {
+    font-size: 16px; /* Prevents iOS zoom on input focus */
+  }
+}
+
+/* Improve keyboard accessibility */
+:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Fix for video container */
+.video-container {
+  min-height: 300px;
+  height: calc(100vh - 200px);
+}
+
+/* Improved grid layout */
+@media (min-width: 1024px) {
+  .grid-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 400px;
+  }
+
+  .video-chat-container {
+    display: flex;
+    height: calc(100vh - 49px);
+  }
+
+  .video-container {
+    flex: 1 1 65%;
+    min-width: 0;
+  }
+
+  .chat-container {
+    flex: 1 1 35%;
+    min-width: 350px;
+    max-width: 450px;
+  }
+
+  .flexible-height {
+    height: calc(100vh - 110px);
+  }
+}
+
+/* Prevent content overflow */
+.overflow-container {
+  max-height: calc(100vh - 57px);
+  overflow-y: auto;
+}
+
+/* Better responsive handling */
+@media (max-width: 1023px) {
+  .mobile-full {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+  }
+}
+
+/* Optimized scrolling */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(155, 155, 155, 0.5);
+  border-radius: 20px;
+}
+
+/* Ensure tab content fills available space */
+.h-full-important {
+  height: 100% !important;
+}
+
+.flex-col-fill {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Fix for video to take available space */
+.video-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Chat card with proper spacing and dimensions */
+.chat-card {
+  height: calc(100vh - 65px);
+  max-height: calc(100vh - 65px);
+  margin: 8px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Mobile chat overlay with proper padding */
+.chat-mobile-overlay {
+  position: fixed;
+  inset: 0;
+  padding: 8px;
+  z-index: 50;
+  background: white;
+}
+
+.dark .chat-mobile-overlay {
+  background: #121212;
+}
+
+/* Add styles for the mobile floating button */
+.chat-toggle-button {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 30;
+  border-radius: 9999px;
+  height: 48px;
+  width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to right, #3b82f6, #06b6d4);
+  color: white;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.5);
+}
+
+/* Audio level visualization */
+.speaking-indicator {
+  position: relative;
+}
+
+.audio-level-indicator {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.audio-bar {
+  width: 2px;
+  background-color: #22c55e;
+  border-radius: 1px;
+  transition: height 100ms ease-in-out;
+}
+
+/* Speaking animation */
+@keyframes pulse-border {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+.speaking-pulse {
+  animation: pulse-border 1.5s infinite;
+}
+
+/* Fix tab content display issue */
+[data-state="inactive"][hidden] {
+  display: none !important;
+}
+
+[data-state="active"] {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+}
+
+/* Tab content should not have top margin */
+[role="tabpanel"] {
+  margin-top: 0 !important;
+}

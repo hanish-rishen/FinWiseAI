@@ -4,8 +4,31 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
+import Header from "@/components/header";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 
 export default function Home() {
+  const router = useRouter();
+
+  // Check if user is authenticated and redirect if needed
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session) {
+        // Redirect authenticated users to dashboard instead of /protected
+        router.replace("/dashboard");
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
   // Define step data outside to avoid issues
   const steps = [
     {
@@ -54,6 +77,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-gray-950">
       {/* Hero Section */}
+      <Header />
       <section className="w-full py-20 md:py-32 overflow-hidden relative">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.1),transparent_40%)]"></div>
@@ -217,7 +241,7 @@ export default function Home() {
               TRUSTED BY INNOVATIVE COMPANIES
             </p>
             <div className="flex flex-wrap justify-center gap-8 md:gap-12 grayscale opacity-60">
-              {["Microsoft", "Google", "Slack", "Shopify", "Spotify"].map(
+              {["Macrosoft", "Gogole", "Salck", "Shopitify", "Sponify"].map(
                 (company) => (
                   <div key={company} className="flex items-center">
                     <span className="text-xl font-bold text-gray-900 dark:text-white">
