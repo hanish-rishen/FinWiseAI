@@ -10,6 +10,7 @@ import {
   Trash2,
   Eye,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,6 +21,8 @@ import { uploadDocument, deleteDocument, fetchDocuments } from "./actions";
 import Image from "next/image";
 import { Document, DocumentType } from "./types";
 import { useLanguage } from "@/context/language-context";
+import { createWorker } from "tesseract.js";
+import { useTextExtraction } from "./extractTextWithDelay";
 
 // Document types and their requirements
 const documentTypes = [
@@ -73,6 +76,11 @@ export default function DocumentsPage() {
   );
   const [uploading, setUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const { extractedText, extracting, setExtractedText, extractTextFromImage } =
+    useTextExtraction();
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(
+    null
+  );
   const { toast } = useToast();
   const router = useRouter();
 
@@ -127,47 +135,69 @@ export default function DocumentsPage() {
           setPreviewImage(e.target?.result as string);
         };
         reader.readAsDataURL(file);
-      }
 
-      setUploading(true);
+        // Extract text from image and get the direct result
+        const extractedTextValue = await extractTextFromImage(file);
 
-      try {
-        // Upload the file
-        const result = await uploadDocument(file, currentDocType.id);
-
-        // Update documents list
-        setDocuments((prev) => [
-          ...prev,
-          {
-            id: Date.now().toString(), // temporary ID, replace with actual ID from backend
-            documentType: currentDocType.id,
-            fileName: file.name,
-            uploadDate: new Date().toISOString().split("T")[0], // Use ISO format date string
-            status: "pending",
-            url: URL.createObjectURL(file), // temporary URL, replace with actual URL from backend
-          },
-        ]);
-
-        toast({
-          title: "Document uploaded successfully",
-          description:
-            "Your document has been uploaded and is pending verification.",
-        });
-      } catch (error) {
-        console.error("Error uploading document:", error);
-        toast({
-          title: "Failed to upload document",
-          description:
-            "There was an error uploading your document. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setUploading(false);
+        // Now upload with the direct text value
+        await handleUpload(file, extractedTextValue);
+      } else {
         setPreviewImage(null);
+        setExtractedText("Text extraction not available for this file type.");
+        await handleUpload(file, null);
       }
     },
-    [currentDocType, toast]
+    [currentDocType, toast, extractTextFromImage]
   );
+
+  // Separate the upload logic to ensure we have the extracted text
+  const handleUpload = async (
+    file: File,
+    extractedTextValue: string | null
+  ) => {
+    setUploading(true);
+
+    try {
+      console.log("Uploading document with text:", extractedTextValue);
+
+      const result = await uploadDocument(
+        file,
+        currentDocType.id,
+        extractedTextValue || undefined
+      );
+
+      console.log("Document upload response:", result);
+
+      setDocuments((prev) => [
+        ...prev,
+        {
+          id: result.id || Date.now().toString(),
+          documentType: currentDocType.id,
+          fileName: file.name,
+          uploadDate: new Date().toISOString().split("T")[0],
+          status: "pending",
+          url: result.public_url || URL.createObjectURL(file),
+          extractedText: extractedTextValue || "",
+        },
+      ]);
+
+      toast({
+        title: "Document uploaded successfully",
+        description:
+          "Your document has been uploaded and is pending verification.",
+      });
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      toast({
+        title: "Failed to upload document",
+        description:
+          "There was an error uploading your document. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -204,7 +234,15 @@ export default function DocumentsPage() {
     }
   };
 
-  const handleViewDocument = (documentUrl: string) => {
+  const handleViewDocument = (documentUrl: string, docId?: string) => {
+    if (docId) {
+      // For documents with an ID, you might want to show extracted text // extractedText dependency is important here
+      const doc = documents.find((d) => d.id === docId);
+      if (doc?.extractedText) {
+        // Here you could display the extracted text in a modal or detailed view
+        setSelectedDocument(doc);
+      }
+    }
     window.open(documentUrl, "_blank");
   };
 
@@ -258,7 +296,11 @@ export default function DocumentsPage() {
                       currentDocType.id === docType.id ? "default" : "outline"
                     }
                     className="w-full justify-start text-left h-auto py-3"
-                    onClick={() => setCurrentDocType(docType)}
+                    onClick={() => {
+                      setCurrentDocType(docType);
+                      setPreviewImage(null);
+                      setExtractedText(null);
+                    }}
                   >
                     <FileText className="h-4 w-4 mr-2 flex-shrink-0" />
                     <div className="flex flex-col items-start">
@@ -270,17 +312,6 @@ export default function DocumentsPage() {
                   </Button>
                 ))}
               </div>
-            </Card>
-
-            <Card className="p-5 bg-white dark:bg-gray-900">
-              <h2 className="text-lg font-medium mb-2">Need Help?</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                If you're having trouble uploading documents, our support team
-                is here to assist you.
-              </p>
-              <Button variant="outline" className="w-full">
-                Contact Support
-              </Button>
             </Card>
           </div>
 
@@ -368,6 +399,28 @@ export default function DocumentsPage() {
                   {uploading ? "Uploading..." : "Upload Document"}
                 </Button>
               </div>
+
+              {/* Extracted Text Section */}
+              {(extractedText || extracting) && (
+                <div className="mt-6 border-t border-gray-200 dark:border-gray-800 pt-6">
+                  <h3 className="font-medium mb-2 flex items-center">
+                    {extracting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Extracting Text...
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Extracted Text
+                      </>
+                    )}
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-md text-sm overflow-auto max-h-60 whitespace-pre-wrap">
+                    {extractedText}
+                  </div>
+                </div>
+              )}
             </Card>
 
             {/* Uploaded documents */}
@@ -426,7 +479,7 @@ export default function DocumentsPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleViewDocument(doc.url)}
+                            onClick={() => handleViewDocument(doc.url, doc.id)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>

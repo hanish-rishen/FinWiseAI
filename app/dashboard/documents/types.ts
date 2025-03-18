@@ -7,11 +7,12 @@ export type DocumentType = {
   maxSize: number;
 };
 
-export type Document = {
+export interface Document {
   id: string;
   documentType: string;
   fileName: string;
   uploadDate: string; // Use string format for dates to avoid hydration issues
-  status: "verified" | "pending" | "rejected";
+  status: string;
   url: string;
-};
+  extractedText?: string; // Add this new property
+}
