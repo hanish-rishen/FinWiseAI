@@ -47,6 +47,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLanguage } from "@/context/language-context";
+import { useUser } from "./dashboard-client-wrapper";
 
 const quickActions = [
   {
@@ -142,12 +143,42 @@ const notifications = [
   },
 ];
 
+// Add this helper function to get user initials
+function getUserInitials(
+  user: { email?: string; user_metadata?: { full_name?: string } } | null
+): string {
+  if (!user) return "?"; // Default for no user
+
+  // If user has full name, use initials
+  if (user.user_metadata?.full_name) {
+    const names = user.user_metadata.full_name.trim().split(" ");
+    if (names.length === 0 || !names[0]) return "?";
+
+    if (names.length === 1) {
+      return names[0].charAt(0).toUpperCase();
+    }
+
+    return (
+      names[0].charAt(0) + names[names.length - 1].charAt(0)
+    ).toUpperCase();
+  }
+
+  // Fallback to email initial if available
+  if (user.email) {
+    return user.email.charAt(0).toUpperCase();
+  }
+
+  // Final fallback
+  return "U";
+}
+
 export default function Dashboard() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [readNotifications, setReadNotifications] = useState<number[]>([3, 4]);
   const { t } = useLanguage();
+  const { user } = useUser();
 
   const currentDate = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -457,9 +488,12 @@ export default function Dashboard() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <div className="h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
-                RK
+              <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 text-sm font-medium">
+                {getUserInitials(user)}
               </div>
+              <span className="hidden md:block text-sm font-medium">
+                {user?.user_metadata?.full_name || user?.email}
+              </span>
             </div>
           </header>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowLeft,
   Camera,
@@ -24,39 +24,191 @@ import Link from "next/link";
 import { useLanguage } from "@/context/language-context";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useUser } from "../dashboard-client-wrapper";
+import { createClient } from "@/utils/supabase/client";
 
 export default function ProfilePage() {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
+  const { user } = useUser();
+  const supabase = createClient();
+  const [isDirty, setIsDirty] = useState(false);
 
-  // Mock user data - in a real app, this would come from your user context or API
+  // User data state - initialize with authenticated user data
   const [userData, setUserData] = useState({
-    name: "Rahul Kumar",
-    email: "rahul.kumar@example.com",
-    phone: "+91 98765 43210",
-    address: "123 Main Street, Mumbai, Maharashtra 400001",
-    dateOfBirth: "1985-04-15",
-    panNumber: "ABCDE1234F",
-    aadhaarNumber: "1234 5678 9012",
-    occupation: "Software Engineer",
-    incomeRange: "₹10,00,000 - ₹15,00,000",
-    isEmailVerified: true,
-    isPhoneVerified: true,
+    name: user?.user_metadata?.full_name || "",
+    email: user?.email || "",
+    phone: user?.user_metadata?.phone || "",
+    address: user?.user_metadata?.address || "",
+    dateOfBirth: user?.user_metadata?.dateOfBirth || "",
+    panNumber: user?.user_metadata?.panNumber || "",
+    aadhaarNumber: user?.user_metadata?.aadhaarNumber || "",
+    occupation: user?.user_metadata?.occupation || "",
+    incomeRange: user?.user_metadata?.incomeRange || "",
+    isEmailVerified: !!user?.email_confirmed_at,
+    isPhoneVerified: !!user?.phone_confirmed_at,
   });
+
+  // Local editable copy
+  const [localUserData, setLocalUserData] = useState({ ...userData });
+
+  // Update localUserData when userData changes
+  useEffect(() => {
+    setLocalUserData({ ...userData });
+  }, [userData]);
+
+  // Add this at the beginning of your component
+  useEffect(() => {
+    console.log("User context:", user);
+  }, [user]);
+
+  // Add a state to track if the data has been loaded
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+  // Fetch profile data only once on initial load
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      // Skip if already loaded or no user
+      if (dataLoaded || !user) {
+        return;
+      }
+
+      try {
+        console.log("Fetching profile for user:", user.id);
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id);
+
+        // Check if we got any data
+        if (error) {
+          console.error("Error fetching profile:", error);
+          if (error.code !== "PGRST116") {
+            toast({
+              title: "Error fetching profile data",
+              description: error.message,
+              variant: "destructive",
+            });
+          }
+          return;
+        }
+
+        // If we got data, update the state with it
+        if (data && data.length > 0) {
+          setUserData((prev) => ({
+            ...prev,
+            name: data[0].full_name || prev.name,
+            phone: data[0].phone || prev.phone,
+            address: data[0].address || prev.address,
+            dateOfBirth: data[0].date_of_birth || prev.dateOfBirth,
+            panNumber: data[0].pan_number || prev.panNumber,
+            aadhaarNumber: data[0].aadhaar_number || prev.aadhaarNumber,
+            occupation: data[0].occupation || prev.occupation,
+            incomeRange: data[0].income_range || prev.incomeRange,
+          }));
+        } else {
+          // If no profile exists, create one
+          const { error: insertError } = await supabase
+            .from("profiles")
+            .insert({
+              id: user.id,
+              full_name: user.user_metadata?.full_name || "",
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+
+          if (insertError) {
+            console.error("Error creating profile:", insertError);
+          }
+        }
+
+        // Mark data as loaded
+        setDataLoaded(true);
+      } catch (error: any) {
+        console.error("Error in profile function:", error);
+        setDataLoaded(true); // Mark as loaded even on error to prevent infinite retries
+      }
+    };
+
+    fetchProfileData();
+  }, [user, supabase, toast, dataLoaded]);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setSaving(false);
+    try {
+      // Check if user exists
+      if (!user || !user.id) {
+        throw new Error("User not authenticated");
+      }
+
+      // First, ensure the date format is correct - use null if invalid
+      const formattedDate = localUserData.dateOfBirth
+        ? new Date(localUserData.dateOfBirth).toISOString().split("T")[0]
+        : null;
+
+      // Update user metadata in auth
+      const { error: authError } = await supabase.auth.updateUser({
+        data: {
+          full_name: localUserData.name,
+          phone: localUserData.phone,
+          address: localUserData.address,
+        },
+      });
+
+      if (authError) {
+        console.error("Auth update error details:", authError);
+        throw new Error(authError.message || "Failed to update user auth data");
+      }
+
+      // Break down the upsert operation for better error handling
+      const profileData = {
+        id: user.id,
+        full_name: localUserData.name,
+        phone: localUserData.phone,
+        address: localUserData.address,
+        date_of_birth: formattedDate,
+        pan_number: localUserData.panNumber,
+        aadhaar_number: localUserData.aadhaarNumber,
+        occupation: localUserData.occupation,
+        income_range: localUserData.incomeRange,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Perform the upsert
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .upsert(profileData);
+
+      if (profileError) {
+        console.error("Profile upsert error details:", profileError);
+        throw new Error(
+          profileError.message || "Failed to update profile data"
+        );
+      }
+
+      // Success - update main userData state
+      setUserData(localUserData);
+      setIsDirty(false);
+
       toast({
         title: "Profile updated",
-        description: "Your profile information has been successfully updated.",
+        description: "Your profile information has been saved successfully.",
       });
-    }, 1500);
+    } catch (error: any) {
+      console.error("Error updating profile:", error);
+      toast({
+        title: "Update failed",
+        description:
+          "There was a problem saving your profile: " +
+          (error.message || "Unknown error"),
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -89,10 +241,16 @@ export default function ProfilePage() {
                 <div className="flex justify-center -mt-12">
                   <div className="relative">
                     <div className="h-24 w-24 rounded-full border-4 border-white dark:border-gray-900 bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-3xl font-bold text-gray-600 dark:text-gray-300">
-                      {userData.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
+                      {localUserData.name && localUserData.name.trim()
+                        ? localUserData.name
+                            .split(" ")
+                            .filter((n: string) => n) // Add explicit string type
+                            .map((n: string) => n[0]) // Add explicit string type
+                            .join("")
+                            .toUpperCase()
+                        : localUserData.email
+                          ? localUserData.email[0].toUpperCase()
+                          : "U"}
                     </div>
                     <button className="absolute bottom-0 right-0 h-8 w-8 bg-gray-100 dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                       <Camera className="h-4 w-4" />
@@ -101,7 +259,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="text-center mt-4">
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                    {userData.name}
+                    {localUserData.name}
                   </h2>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     Customer ID: FW12345678
@@ -112,25 +270,25 @@ export default function ProfilePage() {
                   <div className="flex items-center text-sm">
                     <Mail className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-2" />
                     <span className="text-gray-600 dark:text-gray-300">
-                      {userData.email}
+                      {localUserData.email}
                     </span>
-                    {userData.isEmailVerified && (
+                    {localUserData.isEmailVerified && (
                       <CheckCircle className="h-4 w-4 text-green-500 ml-2" />
                     )}
                   </div>
                   <div className="flex items-center text-sm">
                     <Phone className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-2" />
                     <span className="text-gray-600 dark:text-gray-300">
-                      {userData.phone}
+                      {localUserData.phone}
                     </span>
-                    {userData.isPhoneVerified && (
+                    {localUserData.isPhoneVerified && (
                       <CheckCircle className="h-4 w-4 text-green-500 ml-2" />
                     )}
                   </div>
                   <div className="flex items-start text-sm">
                     <MapPin className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-2 mt-0.5" />
                     <span className="text-gray-600 dark:text-gray-300">
-                      {userData.address}
+                      {localUserData.address}
                     </span>
                   </div>
                 </div>
@@ -189,17 +347,25 @@ export default function ProfilePage() {
                 </CardHeader>
 
                 <TabsContent value="personal">
-                  <form onSubmit={handleSaveProfile}>
+                  <form
+                    onSubmit={handleSaveProfile}
+                    key={`personal-form-${user?.id || "new"}`}
+                  >
                     <CardContent className="space-y-6 pt-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                           <Label htmlFor="name">Full Name</Label>
                           <Input
                             id="name"
-                            value={userData.name}
-                            onChange={(e) =>
-                              setUserData({ ...userData, name: e.target.value })
-                            }
+                            type="text"
+                            value={localUserData.name}
+                            onChange={(e) => {
+                              setLocalUserData({
+                                ...localUserData,
+                                name: e.target.value,
+                              });
+                              setIsDirty(true);
+                            }}
                           />
                         </div>
                         <div className="space-y-2">
@@ -207,10 +373,10 @@ export default function ProfilePage() {
                           <Input
                             id="email"
                             type="email"
-                            value={userData.email}
+                            value={localUserData.email}
                             onChange={(e) =>
-                              setUserData({
-                                ...userData,
+                              setLocalUserData({
+                                ...localUserData,
                                 email: e.target.value,
                               })
                             }
@@ -220,10 +386,10 @@ export default function ProfilePage() {
                           <Label htmlFor="phone">Phone Number</Label>
                           <Input
                             id="phone"
-                            value={userData.phone}
+                            value={localUserData.phone}
                             onChange={(e) =>
-                              setUserData({
-                                ...userData,
+                              setLocalUserData({
+                                ...localUserData,
                                 phone: e.target.value,
                               })
                             }
@@ -234,10 +400,10 @@ export default function ProfilePage() {
                           <Input
                             id="dob"
                             type="date"
-                            value={userData.dateOfBirth}
+                            value={localUserData.dateOfBirth}
                             onChange={(e) =>
-                              setUserData({
-                                ...userData,
+                              setLocalUserData({
+                                ...localUserData,
                                 dateOfBirth: e.target.value,
                               })
                             }
@@ -247,10 +413,10 @@ export default function ProfilePage() {
                           <Label htmlFor="address">Address</Label>
                           <Input
                             id="address"
-                            value={userData.address}
+                            value={localUserData.address}
                             onChange={(e) =>
-                              setUserData({
-                                ...userData,
+                              setLocalUserData({
+                                ...localUserData,
                                 address: e.target.value,
                               })
                             }
@@ -270,17 +436,20 @@ export default function ProfilePage() {
                 </TabsContent>
 
                 <TabsContent value="financial">
-                  <form onSubmit={handleSaveProfile}>
+                  <form
+                    onSubmit={handleSaveProfile}
+                    key={`financial-form-${user?.id || "new"}`}
+                  >
                     <CardContent className="space-y-6 pt-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                           <Label htmlFor="occupation">Occupation</Label>
                           <Input
                             id="occupation"
-                            value={userData.occupation}
+                            value={localUserData.occupation}
                             onChange={(e) =>
-                              setUserData({
-                                ...userData,
+                              setLocalUserData({
+                                ...localUserData,
                                 occupation: e.target.value,
                               })
                             }
@@ -290,10 +459,10 @@ export default function ProfilePage() {
                           <Label htmlFor="incomeRange">Annual Income</Label>
                           <select
                             id="incomeRange"
-                            value={userData.incomeRange}
+                            value={localUserData.incomeRange}
                             onChange={(e) =>
-                              setUserData({
-                                ...userData,
+                              setLocalUserData({
+                                ...localUserData,
                                 incomeRange: e.target.value,
                               })
                             }
@@ -310,10 +479,10 @@ export default function ProfilePage() {
                           <Label htmlFor="panNumber">PAN Number</Label>
                           <Input
                             id="panNumber"
-                            value={userData.panNumber}
+                            value={localUserData.panNumber}
                             onChange={(e) =>
-                              setUserData({
-                                ...userData,
+                              setLocalUserData({
+                                ...localUserData,
                                 panNumber: e.target.value,
                               })
                             }
@@ -323,10 +492,10 @@ export default function ProfilePage() {
                           <Label htmlFor="aadhaarNumber">Aadhaar Number</Label>
                           <Input
                             id="aadhaarNumber"
-                            value={userData.aadhaarNumber}
+                            value={localUserData.aadhaarNumber}
                             onChange={(e) =>
-                              setUserData({
-                                ...userData,
+                              setLocalUserData({
+                                ...localUserData,
                                 aadhaarNumber: e.target.value,
                               })
                             }
