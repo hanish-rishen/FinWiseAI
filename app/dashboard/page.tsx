@@ -70,13 +70,6 @@ const quickActions = [
     href: "/dashboard/eligibility",
     color: "bg-purple-500",
   },
-  {
-    titleKey: "financial_planning",
-    descriptionKey: "financial_planning_description",
-    icon: <PiggyBank className="h-5 w-5" />,
-    href: "/dashboard/planning",
-    color: "bg-amber-500",
-  },
 ];
 
 const loanProducts = [
@@ -222,13 +215,6 @@ export default function Dashboard() {
                 <span>{t("loan_applications")}</span>
               </Link>
               <Link
-                href="/dashboard/planning"
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                <PiggyBank className="h-5 w-5" />
-                <span>{t("financial_planning")}</span>
-              </Link>
-              <Link
                 href="/dashboard/language"
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
@@ -355,14 +341,6 @@ export default function Dashboard() {
               >
                 <DollarSign className="h-5 w-5" />
                 <span>{t("loan_applications")}</span>
-              </Link>
-              <Link
-                href="/dashboard/planning"
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <PiggyBank className="h-5 w-5" />
-                <span>{t("financial_planning")}</span>
               </Link>
               <Link
                 href="/dashboard/language"
@@ -514,7 +492,7 @@ export default function Dashboard() {
             </div>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {quickActions.map((action, index) => (
               <motion.div
                 key={index}
@@ -544,36 +522,55 @@ export default function Dashboard() {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            {loanProducts.map((product, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-              >
-                <Card className="h-full">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">
-                      {t(product.titleKey)}
-                    </CardTitle>
-                    <CardDescription>
-                      {t(product.descriptionKey)}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex justify-between items-center">
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        {t(product.aprKey)}
+          {/* Loan Products Section with Improved Heading */}
+          <div className="mb-12">
+            <div className="flex items-center mb-6">
+              <div className="h-8 w-1 bg-gradient-to-b from-blue-600 to-cyan-500 rounded-full"></div>
+              <h2 className="text-xl font-bold ml-3">{t("loan_types")}</h2>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Loan product cards remain the same */}
+              {loanProducts.map((product, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                >
+                  <Card
+                    className="h-full hover:shadow-md transition-shadow border-t-4"
+                    style={{
+                      borderTopColor:
+                        index % 3 === 0
+                          ? "#3b82f6"
+                          : index % 3 === 1
+                            ? "#0ea5e9"
+                            : "#06b6d4",
+                    }}
+                  >
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">
+                        {t(product.titleKey)}
+                      </CardTitle>
+                      <CardDescription>
+                        {t(product.descriptionKey)}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex justify-between items-center">
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          {t(product.aprKey)}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          {t(product.maxKey)}
+                        </div>
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        {t(product.maxKey)}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
           </div>
 
           <motion.div
