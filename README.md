@@ -42,3 +42,23 @@ https://github.com/user-attachments/assets/11957ee3-2608-4b4a-9e2a-58b667d252c1
 
 ![image](https://github.com/user-attachments/assets/793a3da3-13b7-4f52-bbcb-ab764751c6c7)
 
+### Referral Docs
+
+- Supabase:
+https://supabase.com/docs
+
+- Supabase Auth:
+https://supabase.com/docs/guides/auth
+
+- Gemini 1.5 Flash:
+https://ai.google.dev/gemini-api/docs/models#gemini-1.5-flash
+
+- Open AI Whisper V3:
+https://console.groq.com/docs/speech-to-text
+
+- face-api.js:
+https://justadudewhohacks.github.io/face-api.js/docs/index.html
+
+- Deepseek R1 Zero: https://openrouter.ai/deepseek/deepseek-r1-zero:free/api
+
+
