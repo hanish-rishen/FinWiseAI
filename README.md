@@ -10,6 +10,9 @@ https://drive.google.com/file/d/1nfna2ypiuEOPWCg-cwhFBRbT8vemIwVS/view?usp=shari
 
 ![image](https://github.com/user-attachments/assets/71d94649-71a4-406b-bb49-5423ae081c26)
 
+### face-api.js checks and verifies for face
+
+![WhatsApp Image 2025-03-19 at 16 37 16_4185c917](https://github.com/user-attachments/assets/7ed2c793-21ed-4d7b-a07d-9596b7a60329)
 
 ## Technologies used
 
