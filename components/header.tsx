@@ -130,18 +130,12 @@ export default function Header() {
               About
             </Link>
             <div className="pt-4 flex flex-col gap-2">
-              <Link
-                href="/auth/sign-in"
-                onClick={() => setMobileMenuOpen(false)}
-              >
+              <Link href="/sign-in" onClick={() => setMobileMenuOpen(false)}>
                 <Button variant="outline" className="w-full">
                   Log In
                 </Button>
               </Link>
-              <Link
-                href="/auth/sign-up"
-                onClick={() => setMobileMenuOpen(false)}
-              >
+              <Link href="/sign-up" onClick={() => setMobileMenuOpen(false)}>
                 <Button className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
                   Sign Up
                 </Button>
