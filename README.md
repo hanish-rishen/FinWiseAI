@@ -22,11 +22,13 @@ https://drive.google.com/file/d/1nfna2ypiuEOPWCg-cwhFBRbT8vemIwVS/view?usp=shari
 #### Live
 https://github.com/user-attachments/assets/11957ee3-2608-4b4a-9e2a-58b667d252c1
 
-
-
 ### face-api.js checks and verifies for face
 
 ![WhatsApp Image 2025-03-19 at 16 37 16_4185c917](https://github.com/user-attachments/assets/7ed2c793-21ed-4d7b-a07d-9596b7a60329)
+
+### Weights used by Deepseek R1 Zero to make Loan Approval Decisions
+
+![WhatsApp Image 2025-03-18 at 21 05 10_eb9dfd31](https://github.com/user-attachments/assets/b8926436-b744-4c34-979d-616a469e516c)
 
 ### Sign in Page
 
