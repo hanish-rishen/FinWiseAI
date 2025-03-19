@@ -12,6 +12,8 @@
   "feature_conversations": "AI conversations in your preferred language",
   "feature_documents": "Document requirements explained clearly",
   "feature_accents": "Support for regional accents and dialects",
+  "check_loan_status": "Check Loan Status",
+  "view_application_decision": "View your loan application decision and next steps",
 
   "welcome": "Welcome to FinWiseAI",
   "apply_loan": "Apply for Loan",
