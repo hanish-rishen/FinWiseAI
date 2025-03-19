@@ -65,11 +65,11 @@ const quickActions = [
     color: "bg-green-500",
   },
   {
-    titleKey: "check_eligibility",
-    descriptionKey: "check_eligibility_description",
+    titleKey: "check_loan_status",
+    descriptionKey: "view_application_decision",
     icon: <ClipboardCheck className="h-5 w-5" />,
-    href: "/dashboard/eligibility",
-    color: "bg-purple-500",
+    href: "/dashboard/loan-status",
+    color: "bg-indigo-500",
   },
 ];
 

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Toast } from "@/components/ui/toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useRouter } from "next/navigation";
 import {
   Mic,
   MicOff,
@@ -30,6 +31,7 @@ import {
   Square,
   RefreshCw,
   CheckCircle,
+  User,
 } from "lucide-react";
 import Link from "next/link";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -48,9 +50,6 @@ import {
 
 // Import the custom hook at the top
 import { useGroqSpeechRecognition } from "@/lib/groq-speech-recognition";
-
-// Import needed for router
-import { useRouter } from "next/navigation";
 
 // Add TypeScript declarations for Speech Recognition API
 interface SpeechRecognitionEvent extends Event {
@@ -112,14 +111,114 @@ interface SpeechRecognitionConstructor {
   prototype: SpeechRecognition;
 }
 
+interface DatabaseResult {
+  success: boolean;
+  data: any;
+  message?: string;
+  updated?: boolean;
+  inserted?: boolean;
+  noChanges?: boolean;
+  error?: string;
+  localData?: any;
+}
+
 // Make TypeScript aware of these browser globals
 declare global {
   var SpeechRecognition: SpeechRecognitionConstructor | undefined;
   var webkitSpeechRecognition: SpeechRecognitionConstructor | undefined;
 }
 
+// Replace the current Supabase initialization with this
+
+import { createClient } from "@/utils/supabase/client";
+
+// Update the initialization part of your component
 export default function AiBranchManager() {
   const { t } = useLanguage();
+  const router = useRouter();
+
+  // Replace the existing supabase initialization with this
+  const [supabaseClient] = useState(() => createClient());
+  const [authStatus, setAuthStatus] = useState<{
+    isLoading: boolean;
+    isAuthenticated: boolean;
+    userId: string | null;
+    error: string | null;
+  }>({
+    isLoading: true,
+    isAuthenticated: false,
+    userId: null,
+    error: null,
+  });
+
+  // Add this effect to check authentication status early
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // Get user session
+        const {
+          data: { session },
+        } = await supabaseClient.auth.getSession();
+
+        if (session?.user) {
+          console.log("User authenticated:", session.user.id);
+          setAuthStatus({
+            isLoading: false,
+            isAuthenticated: true,
+            userId: session.user.id,
+            error: null,
+          });
+        } else {
+          console.warn("No authenticated user found");
+          setAuthStatus({
+            isLoading: false,
+            isAuthenticated: false,
+            userId: null,
+            error: "User not authenticated",
+          });
+
+          // Redirect unauthenticated users to login
+          router.push(
+            `/sign-in?redirectedFrom=${encodeURIComponent("/dashboard/video-banker")}`
+          );
+        }
+      } catch (error) {
+        console.error("Auth check error:", error);
+        setAuthStatus({
+          isLoading: false,
+          isAuthenticated: false,
+          userId: null,
+          error: String(error),
+        });
+      }
+    };
+
+    checkAuth();
+  }, [supabaseClient, router]);
+
+  // Add an auth status indicator in your UI
+  const AuthStatusIndicator = () => (
+    <Badge
+      variant="outline"
+      className={`flex items-center gap-1 ${
+        authStatus.isAuthenticated
+          ? "bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800"
+          : authStatus.isLoading
+            ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800"
+            : "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800"
+      }`}
+    >
+      <User className="h-3 w-3" />
+      <span>
+        {authStatus.isLoading
+          ? "Checking..."
+          : authStatus.isAuthenticated
+            ? "Signed In"
+            : "Guest"}
+      </span>
+    </Badge>
+  );
+
   const [micEnabled, setMicEnabled] = useState(true);
   const [cameraEnabled, setCameraEnabled] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
@@ -927,212 +1026,325 @@ export default function AiBranchManager() {
     }
   }, [currentQuestion, isVideoPaused]);
 
-  // Update the saveResponsesToDatabase function:
+  // Update the saveResponsesToDatabase function
 
-  const saveResponsesToDatabase = async () => {
+  const saveResponsesToDatabase = async (): Promise<DatabaseResult> => {
     try {
       console.log("Starting database save operation...");
 
-      // First, get the current session directly from Supabase - this is more reliable
-      const { data: sessionData } = await supabase.auth.getSession();
+      // Use the pre-fetched auth status for reliability
+      const userId = authStatus.userId;
 
-      // Log the full session data for debugging (without sensitive info)
-      console.log("Session data available:", !!sessionData?.session);
+      // If we have a user ID from our auth check
+      if (userId) {
+        console.log("Using authenticated user:", userId);
 
-      // Get user from session
-      const user = sessionData?.session?.user;
-
-      // If we can't get the user from the session, try getting it directly
-      if (!user) {
-        console.log("No user found in session, trying direct user fetch");
-        try {
-          const { data: userData } = await supabase.auth.getUser();
-          if (userData?.user) {
-            console.log("Found user via direct fetch:", userData.user.id);
-
-            // Create application data object
-            const applicationData = {
-              user_id: userData.user.id,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-
-              // Response data
-              intro_response: conversation[0]?.response || "",
-              monthly_income: conversation[1]?.response || "",
-              employment_type: conversation[2]?.response || "",
-              credit_history: conversation[3]?.response || "",
-              loan_amount: conversation[4]?.response || "",
-              loan_tenure: conversation[5]?.response || "",
-              existing_loans: conversation[6]?.response || "",
-              collateral: conversation[7]?.response || "",
-              residence_type: conversation[8]?.response || "",
-              residence_duration: conversation[9]?.response || "",
-              associations: conversation[10]?.response || "",
-              field_investigation_residence: conversation[11]?.response || "",
-              field_investigation_workplace: conversation[12]?.response || "",
-              tele_verification_reachable: conversation[13]?.response || "",
-              tele_verification_accuracy: conversation[14]?.response || "",
-
-              // Additional metadata
-              identity_verification_passed: isSamePerson,
-              application_complete: currentQuestion >= questions.length - 1,
-            };
-
-            // Insert data using normal insert
-            const { data: insertData, error: insertError } = await supabase
-              .from("application")
-              .insert([applicationData])
-              .select("application_id");
-
-            if (insertError) {
-              console.error("Insert failed:", insertError);
-              throw new Error(insertError.message);
-            }
-
-            console.log("Insert succeeded via direct user fetch!", insertData);
-            return { success: true, data: insertData };
-          }
-        } catch (directFetchError) {
-          console.error("Failed to get user directly:", directFetchError);
+        // Format responses for easier DB access - adjust indices to match conversation
+        interface ApplicationData {
+          [key: string]: any; // Add index signature to allow string indexing
+          user_id: string;
+          updated_at: string;
+          intro_response: string;
+          monthly_income: string;
+          employment_type: string;
+          credit_history: string;
+          loan_amount: string;
+          loan_tenure: string;
+          existing_loans: string;
+          collateral: string;
+          residence_type: string;
+          residence_duration: string;
+          associations: string;
+          field_investigation_residence: string;
+          field_investigation_workplace: string;
+          tele_verification_reachable: string;
+          tele_verification_accuracy: string;
+          identity_verification_passed: boolean;
+          application_complete: boolean;
+          created_at?: string; // Make this optional
         }
 
-        // Last resort - store locally and show a message that doesn't imply the user isn't signed in
-        console.warn(
-          "Could not confirm authentication status - saving locally"
-        );
+        const applicationData: ApplicationData = {
+          user_id: userId,
+          updated_at: new Date().toISOString(),
+
+          // Note: intro_response will typically be empty
+          intro_response: "", // This should be empty as users don't answer intro
+
+          // Conversation[0] corresponds to Question 1 (monthly income)
+          monthly_income: conversation[0]?.response || "",
+          employment_type: conversation[1]?.response || "",
+          credit_history: conversation[2]?.response || "",
+          loan_amount: conversation[3]?.response || "",
+          loan_tenure: conversation[4]?.response || "",
+          existing_loans: conversation[5]?.response || "",
+          collateral: conversation[6]?.response || "",
+          residence_type: conversation[7]?.response || "",
+          residence_duration: conversation[8]?.response || "",
+          associations: conversation[9]?.response || "",
+          field_investigation_residence: conversation[10]?.response || "",
+          field_investigation_workplace: conversation[11]?.response || "",
+          tele_verification_reachable: conversation[12]?.response || "",
+          tele_verification_accuracy: conversation[13]?.response || "",
+          identity_verification_passed: isSamePerson,
+          application_complete: currentQuestion >= questions.length - 1,
+        };
+
+        // Get application_id from localStorage if available (for updates)
+        const savedData = localStorage.getItem("videobanker_application");
+        let applicationId = null;
+
+        if (savedData) {
+          try {
+            const parsedData = JSON.parse(savedData);
+            applicationId = parsedData.application_id;
+          } catch (e) {
+            console.warn("Could not parse saved application data", e);
+          }
+        }
+
+        console.log("Application ID from storage:", applicationId);
+
+        let result: DatabaseResult = { success: false, data: null };
+        let hasChanges = false;
+
+        // If we have an application ID, try to update that record
+        if (applicationId) {
+          console.log(
+            "Checking if update is needed for application:",
+            applicationId
+          );
+
+          try {
+            // Try to get the current data first
+            const { data: existingData, error: fetchError } = await supabase
+              .from("application")
+              .select("*")
+              .eq("application_id", applicationId)
+              .maybeSingle();
+
+            if (fetchError) {
+              console.warn("Error fetching existing data:", fetchError);
+              // Continue with update
+              hasChanges = true;
+            } else if (!existingData) {
+              console.warn("No existing record found, will insert new one");
+              // Application ID no longer exists, we'll insert a new record
+              applicationId = null;
+            } else {
+              // Check for changes in important fields
+              hasChanges = false;
+
+              // Fields that should trigger an update if changed
+              const keyFields = [
+                "monthly_income",
+                "employment_type",
+                "credit_history",
+                "loan_amount",
+                "loan_tenure",
+                "existing_loans",
+                "collateral",
+                "residence_type",
+                "residence_duration",
+                "associations",
+                "field_investigation_residence",
+                "field_investigation_workplace",
+                "tele_verification_reachable",
+                "tele_verification_accuracy",
+                "application_complete",
+              ];
+
+              for (const field of keyFields) {
+                if (existingData[field] !== applicationData[field]) {
+                  console.log(
+                    `Field '${field}' changed from '${existingData[field]}' to '${applicationData[field]}'`
+                  );
+                  hasChanges = true;
+                  break;
+                }
+              }
+            }
+
+            // Update if we have an ID and there are changes
+            if (applicationId && hasChanges) {
+              console.log("Updating application with changes");
+
+              // Perform update
+              const { error: updateError } = await supabase
+                .from("application")
+                .update(applicationData)
+                .eq("application_id", applicationId);
+
+              if (updateError) throw updateError;
+
+              // Now fetch the updated data
+              const { data: updatedData, error: fetchUpdatedError } =
+                await supabase
+                  .from("application")
+                  .select("*")
+                  .eq("application_id", applicationId)
+                  .single();
+
+              if (fetchUpdatedError) {
+                console.warn("Error fetching updated data:", fetchUpdatedError);
+                result = {
+                  success: true,
+                  data: { application_id: applicationId },
+                  updated: true,
+                };
+              } else {
+                result = { success: true, data: updatedData, updated: true };
+              }
+
+              console.log("Update successful, fetched data:", updatedData);
+            } else if (applicationId) {
+              console.log("No changes detected, skipping update");
+
+              // Just fetch the current data for consistency
+              const { data: currentData } = await supabase
+                .from("application")
+                .select("*")
+                .eq("application_id", applicationId)
+                .single();
+
+              result = {
+                success: true,
+                data: currentData,
+                updated: false,
+                noChanges: true,
+              };
+            }
+          } catch (err) {
+            console.error("Error during update flow:", err);
+            // If update fails for any reason, try insert as fallback
+            applicationId = null;
+          }
+        }
+
+        // If we don't have an ID or update failed, insert a new record
+        if (!applicationId) {
+          console.log("Creating new application record");
+
+          // Add created_at for new records
+          applicationData.created_at = new Date().toISOString();
+
+          // Perform insert
+          const { data: insertedData, error: insertError } = await supabase
+            .from("application")
+            .insert([applicationData])
+            .select();
+
+          if (insertError) throw insertError;
+
+          console.log("Insert successful, data:", insertedData);
+          applicationId = insertedData?.[0]?.application_id;
+          result = { success: true, data: insertedData?.[0], inserted: true };
+        }
+
+        // Update localStorage with application_id
         localStorage.setItem(
           "videobanker_application",
           JSON.stringify({
             timestamp: new Date().toISOString(),
+            user_id: userId,
+            application_id:
+              applicationId || (result.data as any)?.application_id,
             conversation: conversation,
+            currentQuestion,
           })
         );
 
-        // Don't show the "not signed in" message since the user might actually be signed in
+        // Show feedback to the user
+        const actionType = result.inserted
+          ? "created"
+          : result.updated
+            ? "updated"
+            : "unchanged";
+
+        setNotification({
+          show: true,
+          message: `Application ${actionType} successfully`,
+          type: "success",
+        });
+
+        // Auto-hide notification after 3 seconds
+        setTimeout(() => {
+          setNotification((prev) => ({ ...prev, show: false }));
+        }, 3000);
+
+        console.log("Database operation complete:", {
+          success: result.success,
+          action: actionType,
+          applicationId: applicationId || (result.data as any)?.application_id,
+          dataLength: Array.isArray(result.data)
+            ? result.data.length
+            : result.data
+              ? 1
+              : 0,
+          data: result.data,
+        });
+
+        return result;
+      } else {
+        console.warn(
+          "No authenticated user found - saving to localStorage only"
+        );
+
+        // Format the data consistently
+        const localData = {
+          timestamp: new Date().toISOString(),
+          conversation: conversation,
+          currentQuestion: currentQuestion,
+        };
+
+        localStorage.setItem(
+          "videobanker_application",
+          JSON.stringify(localData)
+        );
+
         return {
           success: false,
-          message:
-            "Could not confirm authentication - data saved locally as backup",
+          message: "Not authenticated - application saved locally",
+          localData,
+          data: null, // Add this line to fix the error
         };
       }
-
-      // If we get here, we have a valid user from the session
-      console.log("Authenticated user found:", user.id);
-
-      // Create application data with the confirmed user ID
-      const applicationData = {
-        user_id: user.id,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-
-        // Application responses
-        intro_response: conversation[0]?.response || "",
-        monthly_income: conversation[1]?.response || "",
-        employment_type: conversation[2]?.response || "",
-        credit_history: conversation[3]?.response || "",
-        loan_amount: conversation[4]?.response || "",
-        loan_tenure: conversation[5]?.response || "",
-        existing_loans: conversation[6]?.response || "",
-        collateral: conversation[7]?.response || "",
-        residence_type: conversation[8]?.response || "",
-        residence_duration: conversation[9]?.response || "",
-        associations: conversation[10]?.response || "",
-        field_investigation_residence: conversation[11]?.response || "",
-        field_investigation_workplace: conversation[12]?.response || "",
-        tele_verification_reachable: conversation[13]?.response || "",
-        tele_verification_accuracy: conversation[14]?.response || "",
-
-        // Additional metadata
-        identity_verification_passed: isSamePerson,
-        application_complete: currentQuestion >= questions.length - 1,
-      };
-
-      console.log(
-        "About to insert into application table with data:",
-        applicationData
-      );
-
-      // Insert with normal insert first - more reliable than RPC
-      const { data, error } = await supabase
-        .from("application")
-        .insert([applicationData])
-        .select("application_id");
-
-      if (error) {
-        console.error("Supabase insert error:", error);
-
-        // If that fails, try the RPC method as backup
-        console.log("Trying RPC method as backup...");
-
-        try {
-          const { data: insertData, error: insertError } = await supabase.rpc(
-            "insert_application_data",
-            {
-              p_user_id: user.id,
-              p_intro_response: applicationData.intro_response,
-              p_monthly_income: applicationData.monthly_income,
-              p_employment_type: applicationData.employment_type,
-              p_credit_history: applicationData.credit_history,
-              p_loan_amount: applicationData.loan_amount,
-              p_loan_tenure: applicationData.loan_tenure,
-              p_existing_loans: applicationData.existing_loans,
-              p_collateral: applicationData.collateral,
-              p_residence_type: applicationData.residence_type,
-              p_residence_duration: applicationData.residence_duration,
-              p_associations: applicationData.associations,
-              p_field_investigation_residence:
-                applicationData.field_investigation_residence,
-              p_field_investigation_workplace:
-                applicationData.field_investigation_workplace,
-              p_tele_verification_reachable:
-                applicationData.tele_verification_reachable,
-              p_tele_verification_accuracy:
-                applicationData.tele_verification_accuracy,
-              p_identity_verification_passed:
-                applicationData.identity_verification_passed,
-              p_application_complete: applicationData.application_complete,
-            }
-          );
-
-          if (insertError) {
-            console.error("RPC insert also failed:", insertError);
-            throw new Error(
-              `Database error: ${error.message}, RPC error: ${insertError.message}`
-            );
-          }
-
-          console.log("RPC insert succeeded as backup!", insertData);
-          return { success: true, data: insertData };
-        } catch (rpcError) {
-          console.error("RPC method failed:", rpcError);
-          throw error; // Throw the original error
-        }
-      }
-
-      console.log("Insert succeeded!", data);
-
-      // Alert the user of success
-      alert("Your application has been saved successfully!");
-
-      return { success: true, data };
     } catch (error) {
       console.error("Failed to save application data:", error);
 
       // Always save to localStorage as backup
+      const backupData = {
+        timestamp: new Date().toISOString(),
+        conversation: conversation,
+        currentQuestion: currentQuestion,
+        error: String(error),
+      };
+
       localStorage.setItem(
-        "videobanker_application_error",
-        JSON.stringify({
-          timestamp: new Date().toISOString(),
-          conversation: conversation,
-        })
+        "videobanker_application",
+        JSON.stringify(backupData)
       );
 
-      return { success: false, error: String(error) };
+      // Show error notification
+      setNotification({
+        show: true,
+        message: `Error saving data: ${String(error).substring(0, 50)}`,
+        type: "error",
+      });
+
+      // Auto-hide notification after 5 seconds
+      setTimeout(() => {
+        setNotification((prev) => ({ ...prev, show: false }));
+      }, 5000);
+
+      return {
+        success: false,
+        error: String(error),
+        localData: backupData,
+        data: null, // Add this line to fix the error
+      };
     }
   };
-
-  // Add this inside your component
-  const router = useRouter();
 
   // Add this function to your component
   const handleEndSession = async () => {
@@ -1191,26 +1403,287 @@ export default function AiBranchManager() {
     }
   })();
 
+  // Add this function to your Video Banker component
+  const loadExistingApplication = async () => {
+    try {
+      // Check localStorage first for application_id
+      const savedData = localStorage.getItem("videobanker_application");
+      let applicationId = null;
+
+      if (savedData) {
+        try {
+          const parsedData = JSON.parse(savedData);
+          applicationId = parsedData.application_id;
+        } catch (e) {
+          console.warn("Could not parse saved application data", e);
+        }
+      }
+
+      const userId = authStatus.userId;
+      if (!userId) return null;
+
+      // Query options
+      const queryOptions = applicationId
+        ? { application_id: applicationId }
+        : { user_id: userId, application_complete: false };
+
+      console.log("Loading application with query:", queryOptions);
+
+      // Fetch the most recent incomplete application for this user
+      let query = supabaseClient.from("application").select("*");
+
+      // Add filters based on available info
+      if (applicationId) {
+        query = query.eq("application_id", applicationId);
+      } else {
+        query = query
+          .eq("user_id", userId)
+          .eq("application_complete", false)
+          .order("created_at", { ascending: false })
+          .limit(1);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        throw error;
+      }
+
+      if (data && data.length > 0) {
+        console.log("Found existing application:", data[0]);
+
+        // Save the application_id to localStorage
+        localStorage.setItem(
+          "videobanker_application",
+          JSON.stringify({
+            timestamp: new Date().toISOString(),
+            user_id: userId,
+            application_id: data[0].application_id,
+            lastQuestion: determineLastAnsweredQuestion(data[0]),
+          })
+        );
+
+        return data[0];
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error loading application:", error);
+      return null;
+    }
+  };
+
+  // Update around line 1471
+  const determineLastAnsweredQuestion = (
+    applicationData: Record<string, any>
+  ) => {
+    const questionFields = [
+      "intro_response",
+      "monthly_income",
+      "employment_type",
+      "credit_history",
+      "loan_amount",
+      "loan_tenure",
+      "existing_loans",
+      "collateral",
+      "residence_type",
+      "residence_duration",
+      "associations",
+      "field_investigation_residence",
+      "field_investigation_workplace",
+      "tele_verification_reachable",
+      "tele_verification_accuracy",
+    ];
+
+    // Find the last field that has a value
+    let lastAnsweredIndex = -1;
+
+    questionFields.forEach((field, index) => {
+      if (applicationData[field]) {
+        lastAnsweredIndex = index;
+      }
+    });
+
+    return lastAnsweredIndex;
+  };
+
+  // Add this to your main useEffect in the component
+  useEffect(() => {
+    const checkAuth = async () => {
+      // Your existing auth code...
+
+      // After authentication is successful, try to load existing application
+      if (authStatus.isAuthenticated) {
+        const existingApplication = await loadExistingApplication();
+
+        if (existingApplication) {
+          // If there's an existing incomplete application, load its data
+          const lastAnsweredQuestion =
+            determineLastAnsweredQuestion(existingApplication);
+
+          // Only restore if we found any answered questions
+          if (lastAnsweredQuestion >= 0) {
+            console.log(
+              `Restoring application from question ${lastAnsweredQuestion}`
+            );
+
+            // Restore conversation data
+            const restoredConversation = [...conversation];
+
+            // Map database fields to conversation responses
+            const fieldToQuestionMap = {
+              // Don't include intro_response as it's not answered
+              monthly_income: 0,
+              employment_type: 1,
+              credit_history: 2,
+              loan_amount: 3,
+              loan_tenure: 4,
+              existing_loans: 5,
+              collateral: 6,
+              residence_type: 7,
+              residence_duration: 8,
+              associations: 9,
+              field_investigation_residence: 10,
+              field_investigation_workplace: 11,
+              tele_verification_reachable: 12,
+              tele_verification_accuracy: 13,
+            };
+
+            // Restore each answer
+            Object.entries(fieldToQuestionMap).forEach(([field, index]) => {
+              if (
+                existingApplication[field] &&
+                index < restoredConversation.length
+              ) {
+                restoredConversation[index].response =
+                  existingApplication[field];
+              }
+            });
+
+            // Update state with restored data
+            setConversation(restoredConversation);
+
+            // Set question to the next unanswered question
+            setCurrentQuestion(
+              Math.min(lastAnsweredQuestion + 1, questions.length - 1)
+            );
+
+            // Show a notification
+            setNotification({
+              show: true,
+              message: "Restored your previous application progress",
+              type: "info",
+            });
+          }
+        }
+      }
+    };
+
+    checkAuth();
+  }, [authStatus.isAuthenticated]);
+
+  // Add this to your Video Banker component state
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    message: string;
+    type: "success" | "error" | "info";
+  }>({
+    show: false,
+    message: "",
+    type: "info",
+  });
+
+  // Update the handleNextQuestion function
+  const handleNextQuestion = async () => {
+    if (currentQuestion === questions.length - 1) {
+      // Handle end of questions
+      return;
+    }
+
+    // Save the current state to database
+    const saveResult = await saveResponsesToDatabase();
+    console.log("Save result:", saveResult);
+
+    // Move to next question
+    setCurrentQuestion((prev) => prev + 1);
+
+    // Show notification for first save
+    if (saveResult?.inserted) {
+      setNotification({
+        show: true,
+        message: "Application created successfully!",
+        type: "success",
+      });
+
+      // Auto-hide notification after 3 seconds
+      setTimeout(() => {
+        setNotification((prev) => ({ ...prev, show: false }));
+      }, 3000);
+    }
+  };
+
+  // Map question indices to database fields correctly
+  function mapQuestionToField(index: number): string {
+    const fieldMap: Record<number, string> = {
+      0: "intro_response", // This will be empty/null as users don't answer intro
+      1: "monthly_income",
+      2: "employment_type",
+      3: "credit_history",
+      4: "loan_amount",
+      5: "loan_tenure",
+      6: "existing_loans",
+      7: "collateral",
+      8: "residence_type",
+      9: "residence_duration",
+      10: "associations",
+      11: "field_investigation_residence",
+      12: "field_investigation_workplace",
+      13: "tele_verification_reachable",
+      14: "tele_verification_accuracy",
+    };
+
+    return fieldMap[index] || "";
+  }
+
+  // And the reverse mapping for restoration
+  function mapFieldToQuestionIndex(field: string): number {
+    const indexMap: Record<string, number> = {
+      intro_response: -1, // Special case - not in conversation array
+      monthly_income: 0,
+      employment_type: 1,
+      credit_history: 2,
+      loan_amount: 3,
+      loan_tenure: 4,
+      existing_loans: 5,
+      collateral: 6,
+      residence_type: 7,
+      residence_duration: 8,
+      associations: 9,
+      field_investigation_residence: 10,
+      field_investigation_workplace: 11,
+      tele_verification_reachable: 12,
+      tele_verification_accuracy: 13,
+    };
+
+    return indexMap[field] !== undefined ? indexMap[field] : -1;
+  }
+
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 overflow-hidden">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-4 py-2 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/dashboard"
-            className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5" />
+      <div className="flex items-center justify-between p-2 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center gap-2">
+          <Link href="/dashboard" className="mr-2">
+            <ArrowLeft className="h-4 w-4 text-gray-500 dark:text-gray-400" />
           </Link>
           <div>
-            <h1 className="text-lg font-semibold leading-none">
-              {t("ai_branch_manager")}
-            </h1>
+            <h1 className="text-sm font-medium">{t("ai_branch_manager")}</h1>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               {t("video_conversation")}
             </p>
           </div>
         </div>
+
         <div className="flex items-center gap-3">
           <Badge
             variant="outline"
@@ -1227,6 +1700,7 @@ export default function AiBranchManager() {
           >
             {t("end_session")}
           </Button>
+          <AuthStatusIndicator />
         </div>
       </div>
 
@@ -2211,17 +2685,17 @@ export default function AiBranchManager() {
             </Card>
           </div>
         )}
-      </div>
 
-      {/* Mobile chat toggle button - Always visible when chat is closed */}
-      {isMobile && !chatOpen && (
-        <Button
-          onClick={toggleChat}
-          className="fixed bottom-4 right-4 rounded-full h-12 w-12 shadow-lg bg-blue-600 hover:bg-blue-700 p-0 z-30"
-        >
-          <MessageSquare className="h-5 w-5 text-white" />
-        </Button>
-      )}
+        {/* Mobile chat toggle button - Always visible when chat is closed */}
+        {isMobile && !chatOpen && (
+          <Button
+            onClick={toggleChat}
+            className="fixed bottom-4 right-4 rounded-full h-12 w-12 shadow-lg bg-blue-600 hover:bg-blue-700 p-0 z-30"
+          >
+            <MessageSquare className="h-5 w-5 text-white" />
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
