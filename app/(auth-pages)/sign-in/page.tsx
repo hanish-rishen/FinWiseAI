@@ -10,11 +10,13 @@ import { Icons } from "@/components/ui/icons";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function SignIn() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectPath = searchParams.get("redirectedFrom") || "/dashboard";
+  const { toast } = useToast();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,7 +42,17 @@ export default function SignIn() {
     };
 
     checkSession();
-  }, [router, redirectPath, supabase.auth]);
+
+    // Check for error in URL params
+    const errorMessage = searchParams.get("error");
+    if (errorMessage) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: errorMessage,
+      });
+    }
+  }, [router, redirectPath, supabase.auth, searchParams, toast]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +71,12 @@ export default function SignIn() {
       }
 
       if (data.session) {
+        toast({
+          title: "Success!",
+          description: "You've been signed in successfully.",
+          variant: "default",
+        });
+
         console.log("Sign in successful, redirecting to:", redirectPath);
         // For demo purposes, add a slight delay to ensure cookies are set
         setTimeout(() => {
@@ -68,6 +86,12 @@ export default function SignIn() {
     } catch (err: any) {
       console.error("Sign in error:", err);
       setError(err.message || "Failed to sign in");
+
+      toast({
+        variant: "destructive",
+        title: "Sign in failed",
+        description: err.message || "Invalid credentials. Please try again.",
+      });
     } finally {
       setLoading(false);
     }

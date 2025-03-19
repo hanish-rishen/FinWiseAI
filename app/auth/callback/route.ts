@@ -19,6 +19,9 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}${redirectTo}`);
   }
 
-  // URL to redirect to after sign up process completes
-  return NextResponse.redirect(`${origin}/protected`);
+  // Update this: Redirect to sign-in page instead of /protected
+  // Add a success message to show via toast
+  return NextResponse.redirect(
+    `${origin}/sign-in?type=success&message=Email confirmed successfully. You can now sign in.`
+  );
 }

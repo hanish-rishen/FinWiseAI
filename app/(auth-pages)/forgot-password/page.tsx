@@ -1,18 +1,110 @@
 "use client";
 
-import { forgotPasswordAction } from "@/app/actions";
-import { FormMessage } from "@/components/form-message";
-import { SubmitButton } from "@/components/submit-button";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Icons } from "@/components/ui/icons";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useSearchParams } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function ForgotPassword() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const type = searchParams.get("type");
   const message = searchParams.get("message");
+  const { toast } = useToast();
+
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [supabase] = useState(() => createClient());
+
+  useEffect(() => {
+    // Check if there's an error or success message in the URL
+    if (message) {
+      if (type === "success") {
+        toast({
+          title: "Success!",
+          description: message,
+        });
+      } else if (type === "error") {
+        toast({
+          title: "Error",
+          description: message,
+          variant: "destructive",
+        });
+      }
+    }
+  }, [message, type, toast]);
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setSuccess(true);
+
+      toast({
+        title: "Email sent!",
+        description: "Check your email for the password reset link.",
+      });
+    } catch (err: any) {
+      console.error("Reset password error:", err);
+      setError(err.message || "Failed to send reset email");
+
+      toast({
+        variant: "destructive",
+        title: "Reset failed",
+        description:
+          err.message || "Failed to send reset email. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // If reset email was sent successfully, show success message
+  if (success) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center px-4">
+        <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800 text-center">
+          <div className="flex justify-center mb-6">
+            <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
+              <Icons.check className="h-6 w-6" />
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold mb-2">Check Your Email</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            We've sent a password reset link to {email}
+          </p>
+          <Link href="/sign-in">
+            <motion.button
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Return to Sign In
+            </motion.button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-white to-gray-50 dark:from-gray-950 dark:to-gray-900">
@@ -30,23 +122,32 @@ export default function ForgotPassword() {
           </div>
 
           <h1 className="text-2xl font-bold text-center mb-2">
-            Reset Password
+            Forgot Password
           </h1>
           <p className="text-center text-gray-600 dark:text-gray-400 mb-8">
-            Enter your email and we'll send you a link to reset your password
+            Enter your email to receive a password reset link
           </p>
 
-          <form className="space-y-5">
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <form onSubmit={handleResetPassword} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium">
                 Email
               </Label>
               <div className="relative">
                 <Input
-                  name="email"
                   id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   required
+                  autoComplete="email"
                   className="pl-10 h-12 border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 />
                 <svg
@@ -67,15 +168,21 @@ export default function ForgotPassword() {
             </div>
 
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <SubmitButton
-                formAction={forgotPasswordAction}
+              <Button
+                type="submit"
+                disabled={loading}
                 className="w-full h-12 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-base font-medium rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
               >
-                Send Reset Link
-              </SubmitButton>
+                {loading ? (
+                  <>
+                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                    Sending email...
+                  </>
+                ) : (
+                  "Send Reset Link"
+                )}
+              </Button>
             </motion.div>
-
-            {type && message && <FormMessage message={{ type, message }} />}
           </form>
 
           <div className="mt-8 text-center">
@@ -85,7 +192,7 @@ export default function ForgotPassword() {
                 href="/sign-in"
                 className="text-blue-600 dark:text-blue-400 font-medium hover:underline"
               >
-                Sign In
+                Sign in
               </Link>
             </p>
           </div>

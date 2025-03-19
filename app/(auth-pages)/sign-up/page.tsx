@@ -1,18 +1,91 @@
 "use client";
 
-import { signUpAction } from "@/app/actions";
-import { FormMessage } from "@/components/form-message";
-import { SubmitButton } from "@/components/submit-button";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Icons } from "@/components/ui/icons";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useSearchParams } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function Signup() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const type = searchParams.get("type");
   const message = searchParams.get("message");
+  const { toast } = useToast();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [supabase] = useState(() => createClient());
+
+  useEffect(() => {
+    // Check if there's an error or success message in the URL
+    if (message) {
+      if (type === "success") {
+        toast({
+          title: "Success!",
+          description: message,
+        });
+      } else if (type === "error") {
+        toast({
+          title: "Error",
+          description: message,
+          variant: "destructive",
+        });
+      }
+    }
+  }, [message, type, toast]);
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        toast({
+          title: "Success!",
+          description: "Check your email for the confirmation link.",
+        });
+
+        // Redirect to the success page or show success state
+        router.push(
+          "/sign-up?type=success&message=Check your email for the confirmation link."
+        );
+      }
+    } catch (err: any) {
+      console.error("Sign up error:", err);
+      setError(err.message || "Failed to sign up");
+
+      toast({
+        variant: "destructive",
+        title: "Sign up failed",
+        description:
+          err.message || "Failed to create account. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (message && type === "success") {
     return (
@@ -20,20 +93,7 @@ export default function Signup() {
         <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800 text-center">
           <div className="flex justify-center mb-6">
             <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
+              <Icons.check className="h-6 w-6" />
             </div>
           </div>
           <h2 className="text-2xl font-bold mb-2">Check Your Email</h2>
@@ -74,17 +134,26 @@ export default function Signup() {
             Join FinWiseAI and unlock a new banking experience
           </p>
 
-          <form className="space-y-5">
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <form onSubmit={handleSignUp} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium">
                 Email
               </Label>
               <div className="relative">
                 <Input
-                  name="email"
                   id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   required
+                  autoComplete="email"
                   className="pl-10 h-12 border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 />
                 <svg
@@ -110,12 +179,13 @@ export default function Signup() {
               </Label>
               <div className="relative">
                 <Input
-                  type="password"
-                  name="password"
                   id="password"
-                  placeholder="Create a strong password"
-                  minLength={6}
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
                   required
+                  autoComplete="new-password"
                   className="pl-10 h-12 border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 />
                 <svg
@@ -136,18 +206,21 @@ export default function Signup() {
             </div>
 
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <SubmitButton
-                formAction={signUpAction}
-                pendingText="Creating your account..."
+              <Button
+                type="submit"
+                disabled={loading}
                 className="w-full h-12 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-base font-medium rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
               >
-                Create Account
-              </SubmitButton>
+                {loading ? (
+                  <>
+                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  "Create Account"
+                )}
+              </Button>
             </motion.div>
-
-            {type && message && type !== "success" && (
-              <FormMessage message={{ type, message }} />
-            )}
           </form>
 
           <div className="mt-8 text-center">
