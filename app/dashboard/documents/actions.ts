@@ -7,13 +7,14 @@ import {
   createServerActionClient,
   createServerComponentClient,
 } from "@supabase/auth-helpers-nextjs";
+import type { UploadResult } from "./types";
 
 // Upload document with extracted text
 export async function uploadDocument(
   file: File,
   documentType: string,
   extractedText?: string
-) {
+): Promise<UploadResult> {
   try {
     const supabaseClient = createServerActionClient({ cookies });
 
@@ -26,9 +27,22 @@ export async function uploadDocument(
     const userId = sessionData.session.user.id;
 
     // Rest of your upload function...
+
+    // Return a properly typed result
+    return {
+      id: "document-id", // Replace with actual ID
+      public_url: "document-url", // Replace with actual URL
+      success: true,
+    };
   } catch (error) {
-    console.error("Upload document error:", error);
-    throw error;
+    console.error("Upload error:", error);
+    return {
+      id: "",
+      public_url: "",
+      success: false,
+      error:
+        error instanceof Error ? error.message : "An unknown error occurred",
+    };
   }
 }
 

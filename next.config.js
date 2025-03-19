@@ -1,17 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config, { isServer }) => {
-    // Fix for json-loader error
-    config.module.rules.push({
-      test: /\.json$/,
-      type: "json",
-    });
-
-    return config;
-  },
-  // Keep any existing Next.js config options below
   experimental: {
     serverActions: true,
+  },
+  images: {
+    domains: ["localhost", "pmtyykmezebdzaaumbhp.supabase.co"],
+  },
+  webpack: (config, { isServer }) => {
+    // Fix face-api.js issues
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        encoding: false,
+      };
+    }
+    return config;
   },
 };
 

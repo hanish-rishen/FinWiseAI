@@ -23,7 +23,7 @@ import {
   fetchDocuments,
 } from "./actions";
 import Image from "next/image";
-import { Document, DocumentType } from "./types";
+import { Document, DocumentType, UploadResult } from "./types";
 import { useLanguage } from "@/context/language-context";
 import { createWorker } from "tesseract.js";
 import { useTextExtraction } from "./extractTextWithDelay";
@@ -535,26 +535,4 @@ export default function DocumentsPage() {
       </div>
     </div>
   );
-}
-
-// Make sure this matches in your actions.ts file
-export type UploadResult = {
-  id: string;
-  public_url: string;
-  success: boolean;
-  error?: string;
-};
-
-export async function uploadDocument(
-  file: File,
-  documentType: string,
-  extractedText?: string
-): Promise<{
-  id: string;
-  public_url: string;
-  success: boolean;
-  error?: string;
-}> {
-  // Implementation...
-  throw new Error("Not implemented");
 }
