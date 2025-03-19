@@ -15,7 +15,8 @@ https://drive.google.com/file/d/1nfna2ypiuEOPWCg-cwhFBRbT8vemIwVS/view?usp=shari
 ![WhatsApp Image 2025-03-19 at 16 37 16_4185c917](https://github.com/user-attachments/assets/7ed2c793-21ed-4d7b-a07d-9596b7a60329)
 
 ## Technologies used
-
+- Authentication: Supabase Auth
+- Database: Supabase
 - Speech to Text: OpenAI Whisper V3 model via groq
 - Text extraction from images(OCR): Gemini 1.5 flash
 - Loan Approval Decision Making: DeepSeek R1 Zero via OpenRouter
