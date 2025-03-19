@@ -22,7 +22,7 @@ https://drive.google.com/file/d/1nfna2ypiuEOPWCg-cwhFBRbT8vemIwVS/view?usp=shari
 #### Live
 https://github.com/user-attachments/assets/11957ee3-2608-4b4a-9e2a-58b667d252c1
 
-### face-api.js checks and verifies for face
+### face-api.js checks and verifies for face every few secs
 
 ![WhatsApp Image 2025-03-19 at 16 37 16_4185c917](https://github.com/user-attachments/assets/7ed2c793-21ed-4d7b-a07d-9596b7a60329)
 
