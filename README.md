@@ -16,7 +16,13 @@ https://drive.google.com/file/d/1nfna2ypiuEOPWCg-cwhFBRbT8vemIwVS/view?usp=shari
 
 ### Text Extraction using Gemini 1.5 Flash
 
+#### Screenshot
 ![image](https://github.com/user-attachments/assets/71d94649-71a4-406b-bb49-5423ae081c26)
+
+#### Live
+https://github.com/user-attachments/assets/11957ee3-2608-4b4a-9e2a-58b667d252c1
+
+
 
 ### face-api.js checks and verifies for face
 
