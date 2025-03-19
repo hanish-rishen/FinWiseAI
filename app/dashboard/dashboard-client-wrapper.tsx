@@ -67,7 +67,7 @@ export function DashboardClientWrapper({
           <UserContext.Provider value={{ user }}>
             {children}
           </UserContext.Provider>
-          <ToastProvider toasts={visibleToasts} onClose={handleClose} />
+          <Toaster />
         </>
       )}
     </>
@@ -76,6 +76,7 @@ export function DashboardClientWrapper({
 
 // Create a context for the user
 import { createContext, useContext } from "react";
+import { Toaster } from "@/components/ui/toaster";
 
 export interface UserContextType {
   user: User | null;

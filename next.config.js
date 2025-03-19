@@ -1,7 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverActions: true,
+    // Change this from a boolean to an object if it's just `true`
+    serverActions: {
+      // Add specific options here if needed
+      allowedOrigins: ["*"],
+      bodySizeLimit: "2mb",
+    },
   },
   images: {
     domains: ["localhost", "pmtyykmezebdzaaumbhp.supabase.co"],
