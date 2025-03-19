@@ -17,12 +17,17 @@ import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { useDropzone } from "react-dropzone";
 import { useToast } from "@/components/ui/use-toast";
-import { uploadDocument, deleteDocument, fetchDocuments } from "./actions";
+import {
+  uploadDocument as uploadDocumentAction,
+  deleteDocument,
+  fetchDocuments,
+} from "./actions";
 import Image from "next/image";
 import { Document, DocumentType } from "./types";
 import { useLanguage } from "@/context/language-context";
 import { createWorker } from "tesseract.js";
 import { useTextExtraction } from "./extractTextWithDelay";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 // Document types and their requirements
 const documentTypes = [
@@ -83,10 +88,22 @@ export default function DocumentsPage() {
   );
   const { toast } = useToast();
   const router = useRouter();
+  const supabase = createClientComponentClient();
 
   useEffect(() => {
     const getDocuments = async () => {
       try {
+        // Check if the user is authenticated
+        const { data } = await supabase.auth.getSession();
+
+        if (!data.session?.user) {
+          console.log("No session found, redirecting to sign-in");
+          router.push(
+            `/sign-in?redirectedFrom=${encodeURIComponent("/dashboard/documents")}`
+          );
+          return;
+        }
+
         const docs = await fetchDocuments();
         setDocuments(docs);
       } catch (error) {
@@ -100,7 +117,7 @@ export default function DocumentsPage() {
     };
 
     getDocuments();
-  }, [toast]);
+  }, [toast, router, supabase.auth]);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -150,7 +167,7 @@ export default function DocumentsPage() {
     [currentDocType, toast, extractTextFromImage]
   );
 
-  // Separate the upload logic to ensure we have the extracted text
+  // Update the handleUpload function to handle the correct return type
   const handleUpload = async (
     file: File,
     extractedTextValue: string | null
@@ -160,32 +177,47 @@ export default function DocumentsPage() {
     try {
       console.log("Uploading document with text:", extractedTextValue);
 
-      const result = await uploadDocument(
+      // Instead of type assertion, use async/await and check the result
+      const response = await uploadDocumentAction(
         file,
         currentDocType.id,
         extractedTextValue || undefined
       );
 
-      console.log("Document upload response:", result);
+      // Cast to unknown first, then to UploadResult (if needed)
+      const result = response as unknown as UploadResult;
 
-      setDocuments((prev) => [
-        ...prev,
-        {
-          id: result.id || Date.now().toString(),
-          documentType: currentDocType.id,
-          fileName: file.name,
-          uploadDate: new Date().toISOString().split("T")[0],
-          status: "pending",
-          url: result.public_url || URL.createObjectURL(file),
-          extractedText: extractedTextValue || "",
-        },
-      ]);
+      // Now you can access the properties safely
+      if (result && result.id && result.public_url) {
+        // Access properties
+        handleViewDocument(result.public_url, result.id);
 
-      toast({
-        title: "Document uploaded successfully",
-        description:
-          "Your document has been uploaded and is pending verification.",
-      });
+        // Update the list with the new document
+        setDocuments((prevDocs) => [
+          {
+            id: result.id,
+            name: file.name,
+            type: currentDocType.id,
+            url: result.public_url,
+            created_at: new Date().toISOString(),
+            user_id: "", // This will be filled on the server side
+            documentType: currentDocType.id,
+            fileName: file.name,
+            uploadDate: new Date().toISOString(),
+            status: "pending",
+          },
+          ...prevDocs,
+        ]);
+
+        toast({
+          title: "Document uploaded successfully",
+          description:
+            "Your document has been uploaded and is pending verification.",
+        });
+      } else {
+        // Handle case where result doesn't have expected properties
+        throw new Error("Upload failed: Invalid response from server");
+      }
     } catch (error) {
       console.error("Error uploading document:", error);
       toast({
@@ -503,4 +535,26 @@ export default function DocumentsPage() {
       </div>
     </div>
   );
+}
+
+// Make sure this matches in your actions.ts file
+export type UploadResult = {
+  id: string;
+  public_url: string;
+  success: boolean;
+  error?: string;
+};
+
+export async function uploadDocument(
+  file: File,
+  documentType: string,
+  extractedText?: string
+): Promise<{
+  id: string;
+  public_url: string;
+  success: boolean;
+  error?: string;
+}> {
+  // Implementation...
+  throw new Error("Not implemented");
 }
